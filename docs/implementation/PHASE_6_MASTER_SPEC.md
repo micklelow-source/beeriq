@@ -137,7 +137,7 @@ ready for nationwide scaling without major architectural change.
 | 5 | BrewIQ Score v2 | ✅ Implemented (weighted components, data confidence, trend, recommendations, persisted, API); social signal awaits an integration |
 | 6 | Notification Engine | ⬚ Specified |
 | 7 | Route Planner (PostGIS) | ⬚ Specified |
-| 8 | Live Feed | ⬚ Specified |
+| 8 | Live Feed | ✅ Implemented (paginated cross-brewery UNION of change events + score increases) |
 | 9 | WebSockets | ⬚ Specified |
 | 10 | Search (OpenSearch) | ⬚ Specified |
 | 11 | Monitoring | ⬚ Specified |
