@@ -133,7 +133,7 @@ ready for nationwide scaling without major architectural change.
 | — | REST API (breweries, discovery, health) | ✅ Implemented |
 | — | Test suite (pytest) | ✅ Implemented |
 | 3 | AI Extraction Layer | ◑ Provider abstraction + Claude/fake providers + ExtractionService + API; OpenAI/local pending |
-| 4 | Diff Engine | ⬚ Specified |
+| 4 | Diff Engine | ✅ Implemented (pure diff + stored extractions/history + change events + API) |
 | 5 | BrewIQ Score v2 | ⬚ Specified |
 | 6 | Notification Engine | ⬚ Specified |
 | 7 | Route Planner (PostGIS) | ⬚ Specified |

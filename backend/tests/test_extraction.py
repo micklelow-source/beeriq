@@ -97,7 +97,10 @@ async def test_extract_endpoint(session: AsyncSession) -> None:
             f"/api/v1/breweries/{brewery.id}/urls/{url.id}/extract"
         )
     assert resp.status_code == 200, resp.text
-    assert resp.json()["beers"][0]["name"] == "Hazy IPA"
+    body = resp.json()
+    assert body["extraction"]["beers"][0]["name"] == "Hazy IPA"
+    # First extraction for the URL is a baseline: no change events yet.
+    assert body["changes"] == []
 
 
 @pytest.mark.asyncio
