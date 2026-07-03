@@ -134,7 +134,7 @@ ready for nationwide scaling without major architectural change.
 | — | Test suite (pytest) | ✅ Implemented |
 | 3 | AI Extraction Layer | ◑ Provider abstraction + Claude/fake providers + ExtractionService + API; OpenAI/local pending |
 | 4 | Diff Engine | ✅ Implemented (pure diff + stored extractions/history + change events + API) |
-| 5 | BrewIQ Score v2 | ⬚ Specified |
+| 5 | BrewIQ Score v2 | ✅ Implemented (weighted components, data confidence, trend, recommendations, persisted, API); social signal awaits an integration |
 | 6 | Notification Engine | ⬚ Specified |
 | 7 | Route Planner (PostGIS) | ⬚ Specified |
 | 8 | Live Feed | ⬚ Specified |

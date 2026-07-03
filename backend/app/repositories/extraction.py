@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
+from app.models.discovered_url import DiscoveredURL
 from app.models.extraction import Extraction
 from app.repositories.base import BaseRepository
 
@@ -26,3 +27,14 @@ class ExtractionRepository(BaseRepository[Extraction]):
             .order_by(Extraction.created_at.desc())
             .limit(1)
         )
+
+    async def count_for_brewery(self, brewery_id: uuid.UUID) -> int:
+        """Count all extractions across a brewery's discovered URLs."""
+
+        result = await self.session.scalar(
+            select(func.count())
+            .select_from(Extraction)
+            .join(DiscoveredURL, Extraction.discovered_url_id == DiscoveredURL.id)
+            .where(DiscoveredURL.brewery_id == brewery_id)
+        )
+        return int(result or 0)

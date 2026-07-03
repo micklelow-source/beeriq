@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Sequence
+from datetime import datetime
 
 from sqlalchemy import func, select
 
-from app.models.change_event import ChangeEvent
+from app.models.change_event import ChangeEvent, ChangeEventType
 from app.repositories.base import BaseRepository
 
 
@@ -34,5 +36,24 @@ class ChangeEventRepository(BaseRepository[ChangeEvent]):
             select(func.count())
             .select_from(ChangeEvent)
             .where(ChangeEvent.brewery_id == brewery_id)
+        )
+        return int(result or 0)
+
+    async def count_recent_by_type(
+        self,
+        brewery_id: uuid.UUID,
+        event_types: Sequence[ChangeEventType],
+        since: datetime,
+    ) -> int:
+        """Count a brewery's events of the given types since ``since``."""
+
+        result = await self.session.scalar(
+            select(func.count())
+            .select_from(ChangeEvent)
+            .where(
+                ChangeEvent.brewery_id == brewery_id,
+                ChangeEvent.event_type.in_(event_types),
+                ChangeEvent.created_at >= since,
+            )
         )
         return int(result or 0)
