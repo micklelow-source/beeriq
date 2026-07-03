@@ -1,6 +1,6 @@
 # ADR-0004: AI provider abstraction
 
-- Status: Proposed
+- Status: Accepted (Anthropic + fake providers implemented; OpenAI/local pending)
 - Date: 2026-07-02
 
 ## Context
@@ -38,6 +38,9 @@ class AIProvider(Protocol):
 
 ## Status note
 
-This ADR is **Proposed**: the interface and `ExtractionService` are not yet
-implemented. It is recorded now so the fetcher/scrape pipeline is built with this
-seam in mind.
+Implemented in `app/integrations/ai/` (`AIProvider` protocol, `AnthropicProvider`
+using the SDK's structured-outputs `messages.parse`, and `FakeAIProvider` for
+tests) plus `ExtractionService` and a `POST /breweries/{id}/urls/{url_id}/extract`
+endpoint. The provider is selected by `BREWIQ_AI_PROVIDER` and defaults to `fake`
+so the app runs without credentials. OpenAI and local-model providers remain to be
+implemented behind the same interface.

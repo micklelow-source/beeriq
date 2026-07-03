@@ -13,6 +13,7 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_sessionmaker
+from app.integrations.ai import AIProvider, build_ai_provider
 from app.integrations.fetcher import Fetcher, HttpxFetcher
 
 
@@ -40,5 +41,12 @@ async def get_fetcher() -> AsyncIterator[Fetcher]:
         await fetcher.aclose()
 
 
+def get_ai_provider() -> AIProvider:
+    """Return the configured AI extraction provider (spec §3)."""
+
+    return build_ai_provider()
+
+
 SessionDep = Depends(get_session)
 FetcherDep = Depends(get_fetcher)
+AIProviderDep = Depends(get_ai_provider)

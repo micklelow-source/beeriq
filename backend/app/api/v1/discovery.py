@@ -7,17 +7,21 @@ import uuid
 from fastapi import APIRouter, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import FetcherDep, SessionDep
+from app.api.deps import AIProviderDep, FetcherDep, SessionDep
+from app.integrations.ai import AIExtractionError, AIProvider
 from app.integrations.fetcher import Fetcher
 from app.repositories.discovered_url import DiscoveredURLRepository
+from app.repositories.page_snapshot import PageSnapshotRepository
 from app.schemas.discovery import (
     DiscoveredURLRead,
     DiscoveryResult,
     PageSnapshotRead,
     ScrapeResult,
 )
+from app.schemas.extraction import TapListExtraction
 from app.services.brewery import BreweryService
 from app.services.discovery import DiscoveryService
+from app.services.extraction import ExtractionService
 from app.services.scrape import ScrapeService
 
 router = APIRouter(prefix="/breweries/{brewery_id}", tags=["discovery"])
@@ -79,3 +83,32 @@ async def scrape_discovered_url(
     return ScrapeResult(
         snapshot=PageSnapshotRead.model_validate(snapshot), changed=changed
     )
+
+
+@router.post(
+    "/urls/{url_id}/extract",
+    response_model=TapListExtraction,
+    summary="Extract structured data from a discovered URL's latest snapshot",
+)
+async def extract_discovered_url(
+    brewery_id: uuid.UUID,
+    url_id: uuid.UUID,
+    session: AsyncSession = SessionDep,
+    provider: AIProvider = AIProviderDep,
+) -> TapListExtraction:
+    repo = DiscoveredURLRepository(session)
+    discovered = await repo.get(url_id)
+    if discovered is None or discovered.brewery_id != brewery_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Discovered URL not found")
+
+    snapshot = await PageSnapshotRepository(session).latest_for_url(url_id)
+    if snapshot is None or snapshot.html is None:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "No stored snapshot to extract from; scrape the URL first.",
+        )
+
+    try:
+        return await ExtractionService(provider).extract_from_html(snapshot.html)
+    except AIExtractionError as exc:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc

@@ -14,6 +14,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "test", "production"]
+AIProviderName = Literal["fake", "anthropic", "openai", "local"]
 
 
 class Settings(BaseSettings):
@@ -44,6 +45,13 @@ class Settings(BaseSettings):
         "BrewIQBot/0.1 (+https://github.com/micklelow-source/beeriq)"
     )
     discovery_max_concurrency: int = Field(default=5, ge=1, le=50)
+
+    # AI extraction (spec §3). Defaults to the credential-free fake provider so
+    # the app runs out of the box; set to "anthropic" with a key for real use.
+    ai_provider: AIProviderName = "fake"
+    ai_model: str = "claude-opus-4-8"
+    ai_max_tokens: int = Field(default=16_000, ge=256, le=128_000)
+    anthropic_api_key: str | None = None
 
     @property
     def is_test(self) -> bool:

@@ -132,7 +132,7 @@ ready for nationwide scaling without major architectural change.
 | — | NH brewery seed import | ✅ Implemented |
 | — | REST API (breweries, discovery, health) | ✅ Implemented |
 | — | Test suite (pytest) | ✅ Implemented |
-| 3 | AI Extraction Layer | ⬚ Specified (ADR-0004); provider interface pending |
+| 3 | AI Extraction Layer | ◑ Provider abstraction + Claude/fake providers + ExtractionService + API; OpenAI/local pending |
 | 4 | Diff Engine | ⬚ Specified |
 | 5 | BrewIQ Score v2 | ⬚ Specified |
 | 6 | Notification Engine | ⬚ Specified |
