@@ -47,3 +47,16 @@ export async function apiGet<T>(
   }
   return (await res.json()) as T;
 }
+
+/** Perform a POST request and parse JSON, throwing {@link ApiError} on failure. */
+export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
+  const res = await fetch(buildUrl(path), {
+    method: "POST",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new ApiError(`POST ${path} failed`, res.status);
+  }
+  return (await res.json()) as T;
+}

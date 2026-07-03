@@ -87,6 +87,12 @@ async def test_feed_merges_changes_and_score_increases(session: AsyncSession) ->
     assert "score rose to 82.0" in score_item.summary.lower()
     assert score_item.details == {"overall": 82.0, "delta": 5.0}
 
+    # Change-event items expose their event_type so clients can badge them.
+    change_types = {
+        i.details.get("event_type") for i in items if i.kind == "change_event"
+    }
+    assert "food_truck_added" in change_types
+
 
 @pytest.mark.asyncio
 async def test_feed_pagination(session: AsyncSession) -> None:

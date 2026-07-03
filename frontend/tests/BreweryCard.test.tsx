@@ -18,11 +18,15 @@ const brewery: Brewery = {
 };
 
 describe("BreweryCard", () => {
-  it("renders name, location, and website link", () => {
+  it("renders name, location, and links to the detail page and website", () => {
     render(<BreweryCard brewery={brewery} />);
     expect(screen.getByRole("heading", { name: "Stoneface Brewing" })).toBeDefined();
     expect(screen.getByText("Newington, NH")).toBeDefined();
-    const link = screen.getByRole("link", { name: /visit website/i });
-    expect(link.getAttribute("href")).toBe("https://stonefacebrewing.com");
+
+    const detail = screen.getByRole("link", { name: /view score/i });
+    expect(detail.getAttribute("href")).toBe("/breweries/1");
+
+    const website = screen.getByRole("link", { name: /website/i });
+    expect(website.getAttribute("href")).toBe("https://stonefacebrewing.com");
   });
 });

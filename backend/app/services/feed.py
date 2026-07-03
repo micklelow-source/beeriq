@@ -70,7 +70,9 @@ class FeedService:
             brewery = breweries[row.brewery_id]
             if row.kind == "change_event":
                 event = changes[row.item_id]
-                summary, details = event.summary, event.details
+                summary = event.summary
+                # Surface the event type so clients can badge each item correctly.
+                details = {**event.details, "event_type": event.event_type.value}
             else:
                 score = scores[row.item_id]
                 delta = f"+{score.trend_delta}" if score.trend_delta is not None else ""

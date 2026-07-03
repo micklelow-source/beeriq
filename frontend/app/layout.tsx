@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { NavBar } from "@/components/NavBar";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -16,7 +17,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <NavBar />
+          {children}
+        </Providers>
       </body>
     </html>
   );
