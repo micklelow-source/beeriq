@@ -1,0 +1,7 @@
+"""Business-logic / orchestration layer."""
+
+from app.services.brewery import BreweryService
+from app.services.discovery import DiscoveryService
+from app.services.scrape import ScrapeService
+
+__all__ = ["BreweryService", "DiscoveryService", "ScrapeService"]
