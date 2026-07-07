@@ -7,12 +7,14 @@ export interface Brewery {
   name: string;
   slug: string;
   website: string | null;
+  brewery_type: string | null;
   city: string | null;
   state: string | null;
   latitude: number | null;
   longitude: number | null;
   created_at: string;
   updated_at: string;
+  tap_updated_at: string | null;
 }
 
 export interface BreweryPage {

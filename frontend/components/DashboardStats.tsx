@@ -6,10 +6,10 @@ import { useStateStats } from "@/hooks/useStateStats";
 
 function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">{label}</p>
-      <p className="mt-1 text-3xl font-bold tabular-nums text-neutral-900">{value}</p>
-      {hint && <p className="mt-1 text-xs text-neutral-400">{hint}</p>}
+    <div className="rounded-xl border border-border bg-card p-4">
+      <p className="eyebrow">{label}</p>
+      <p className="mt-1 font-serif text-3xl font-bold tabular-nums text-primary">{value}</p>
+      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 }

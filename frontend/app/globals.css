@@ -3,9 +3,39 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
+
+  /* OKLCH params (L C H) — wrapped as oklch(var(--x) / a) in the Tailwind theme. */
+  --background: 18% 0.02 60;
+  --foreground: 96% 0.02 85;
+  --card: 23% 0.025 60;
+  --card-foreground: 96% 0.02 85;
+  --primary: 78% 0.16 70;
+  --primary-foreground: 20% 0.03 60;
+  --secondary: 30% 0.03 60;
+  --secondary-foreground: 96% 0.02 85;
+  --muted: 26% 0.02 60;
+  --muted-foreground: 72% 0.03 80;
+  --accent: 60% 0.18 145;
+  --accent-foreground: 15% 0.02 60;
+  --destructive: 60% 0.22 25;
+  --border: 32% 0.02 60;
+  --input: 28% 0.02 60;
+  --radius: 0.75rem;
 }
 
-body {
-  @apply bg-neutral-50 text-neutral-900 antialiased;
+@layer base {
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-serif;
+  }
+  /* Uppercase small-caps label used throughout the reference design. */
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground;
+  }
 }

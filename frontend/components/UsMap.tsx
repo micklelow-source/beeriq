@@ -23,14 +23,14 @@ const collection = feature(
 const projection = geoAlbersUsa().fitSize([VIEW_W, VIEW_H], collection);
 const pathGen = geoPath(projection);
 
-export function UsMap() {
+export function UsMap({ basePath = "/states" }: { basePath?: string }) {
   const router = useRouter();
   const { data: counts = {} } = useStateStats();
 
-  const go = (abbr: string) => router.push(`/states/${abbr}`);
+  const go = (abbr: string) => router.push(`${basePath}/${abbr}`);
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-4">
       <svg
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         className="h-auto w-full"
@@ -61,7 +61,7 @@ export function UsMap() {
         </g>
       </svg>
 
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-4 text-xs text-neutral-600">
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
         {REGIONS.map((r) => (
           <span key={r} className="flex items-center gap-1.5">
             <span
@@ -71,24 +71,24 @@ export function UsMap() {
             {r}
           </span>
         ))}
-        <span className="text-neutral-400">· shaded = has breweries · click to explore</span>
+        <span className="opacity-60">· shaded = has breweries · click to explore</span>
       </div>
 
       <style jsx>{`
         .state {
-          fill-opacity: 0.16;
-          stroke: #ffffff;
+          fill-opacity: 0.22;
+          stroke: oklch(18% 0.02 60);
           stroke-width: 0.5;
           cursor: pointer;
           transition: fill-opacity 0.15s, stroke 0.15s;
           outline: none;
         }
         .state.active {
-          fill-opacity: 0.85;
+          fill-opacity: 0.9;
         }
         .state:hover {
           fill-opacity: 1;
-          stroke: #1f2937;
+          stroke: oklch(96% 0.02 85);
           stroke-width: 1;
         }
       `}</style>

@@ -18,40 +18,40 @@ export default function BreweryDetailPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
-      <Link href="/" className="text-sm text-neutral-500 hover:text-brew-600">
+      <Link href="/" className="text-sm text-muted-foreground hover:text-primary">
         ← Dashboard
       </Link>
 
-      {isLoading && <p className="mt-6 text-neutral-500">Loading…</p>}
-      {isError && <p className="mt-6 text-red-600">Brewery not found.</p>}
+      {isLoading && <p className="mt-6 text-muted-foreground">Loading…</p>}
+      {isError && <p className="mt-6 text-destructive">Brewery not found.</p>}
 
       {brewery && (
         <>
           <header className="mb-8 mt-4">
             <h1 className="text-3xl font-bold tracking-tight">{brewery.name}</h1>
-            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-neutral-500">
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-muted-foreground">
               <span>{[brewery.city, brewery.state].filter(Boolean).join(", ")}</span>
               {brewery.website && (
                 <>
-                  <span className="text-neutral-300">·</span>
+                  <span className="text-border">·</span>
                   <a
                     href={brewery.website}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-brew-600 hover:text-brew-500"
+                    className="text-primary hover:text-primary"
                   >
                     Website ↗
                   </a>
                 </>
               )}
-              <span className="text-neutral-300">·</span>
+              <span className="text-border">·</span>
               <a
                 href={mapsDirectionsUrl(
                   [brewery.name, brewery.city, brewery.state].filter(Boolean).join(" "),
                 )}
                 target="_blank"
                 rel="noreferrer"
-                className="text-brew-600 hover:text-brew-500"
+                className="text-primary hover:text-primary"
               >
                 Directions ↗
               </a>
@@ -63,7 +63,7 @@ export default function BreweryDetailPage() {
               <ScoreCard breweryId={id} />
               <CurrentInfo breweryId={id} />
             </div>
-            <section className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
               <h2 className="mb-4 text-lg font-semibold">Change history</h2>
               <ChangeList breweryId={id} />
             </section>

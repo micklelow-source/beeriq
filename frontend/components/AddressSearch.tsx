@@ -70,12 +70,12 @@ export function AddressSearch() {
         value={address}
         onChange={(e) => setAddress(e.target.value)}
         placeholder="Find breweries near an address…"
-        className="flex-1 rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brew-500 focus:outline-none focus:ring-1 focus:ring-brew-500"
+        className="flex-1 rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
         aria-label="Address"
       />
       <button
         type="submit"
-        className="rounded-md bg-brew-600 px-4 py-2 text-sm font-medium text-white hover:bg-brew-500"
+        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
       >
         Search
       </button>

@@ -17,30 +17,30 @@ export function FeedList() {
   const { data, isLoading, isError } = useFeed();
 
   if (isLoading) return <p className="text-neutral-500">Loading feed…</p>;
-  if (isError) return <p className="text-red-600">Could not load the feed.</p>;
+  if (isError) return <p className="text-destructive">Could not load the feed.</p>;
   if (!data || data.items.length === 0) {
     return (
-      <p className="text-neutral-500">
+      <p className="text-muted-foreground">
         Nothing here yet — activity appears as breweries update their taps, events, and scores.
       </p>
     );
   }
 
   return (
-    <ul className="divide-y divide-neutral-100 rounded-xl border border-neutral-200 bg-white shadow-sm">
+    <ul className="divide-y divide-border rounded-xl border border-border bg-card">
       {data.items.map((item) => (
         <li key={item.id} className="flex items-center gap-3 px-4 py-3">
           <EventBadge type={item.kind === "score_increase" ? "score_increase" : badgeType(item)} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm text-neutral-800">{item.summary}</p>
+            <p className="truncate text-sm text-foreground/90">{item.summary}</p>
             <Link
               href={`/breweries/${item.brewery_id}`}
-              className="text-xs font-medium text-brew-600 hover:text-brew-500"
+              className="text-xs font-medium text-primary hover:opacity-80"
             >
               {item.brewery_name}
             </Link>
           </div>
-          <span className="shrink-0 text-xs text-neutral-400">
+          <span className="shrink-0 text-xs text-muted-foreground">
             {formatRelative(item.created_at)}
           </span>
         </li>
