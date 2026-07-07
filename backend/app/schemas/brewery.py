@@ -13,6 +13,7 @@ class BreweryBase(BaseModel):
 
     name: str = Field(min_length=1, max_length=200)
     website: HttpUrl | None = None
+    brewery_type: str | None = Field(default=None, max_length=40)
     city: str | None = Field(default=None, max_length=120)
     state: str | None = Field(default=None, min_length=2, max_length=2)
     latitude: float | None = Field(default=None, ge=-90, le=90)
@@ -34,6 +35,9 @@ class BreweryRead(BreweryBase):
     slug: str
     created_at: datetime
     updated_at: datetime
+    # Most recent extraction timestamp for the brewery (tap-list recency); None
+    # if never scraped/extracted.
+    tap_updated_at: datetime | None = None
 
 
 class BreweryPage(BaseModel):

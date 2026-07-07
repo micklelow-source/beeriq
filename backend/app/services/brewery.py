@@ -34,6 +34,7 @@ class BreweryService:
             name=payload.name,
             slug=slug,
             website=str(payload.website) if payload.website else None,
+            brewery_type=payload.brewery_type,
             city=payload.city,
             state=payload.state.upper() if payload.state else None,
             latitude=payload.latitude,

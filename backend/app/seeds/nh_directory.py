@@ -25,6 +25,7 @@ def _to_payload(record: DirectoryBrewery, *, drop_website: bool = False) -> Brew
     return BreweryCreate(
         name=record.name,
         website=None if drop_website else record.website,
+        brewery_type=record.brewery_type,
         city=record.city,
         state=record.state_code,
         latitude=record.latitude,
@@ -47,7 +48,10 @@ async def import_nh_directory() -> int:
             except ValidationError:
                 # Almost always a malformed website_url — import without it.
                 payload = _to_payload(record, drop_website=True)
-            await service.upsert_by_slug(payload)
+            brewery = await service.upsert_by_slug(payload)
+            # Backfill brewery_type on records imported before this column existed.
+            if brewery.brewery_type != record.brewery_type:
+                brewery.brewery_type = record.brewery_type
             imported += 1
 
     logger.info("NH directory import complete", extra={"imported": imported})

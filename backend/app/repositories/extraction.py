@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Sequence
+from datetime import datetime
 
 from sqlalchemy import func, select
 
@@ -38,3 +40,18 @@ class ExtractionRepository(BaseRepository[Extraction]):
             .where(DiscoveredURL.brewery_id == brewery_id)
         )
         return int(result or 0)
+
+    async def latest_times_for_breweries(
+        self, brewery_ids: Sequence[uuid.UUID]
+    ) -> dict[uuid.UUID, datetime]:
+        """Return ``{brewery_id: latest extraction time}`` for the given ids."""
+
+        if not brewery_ids:
+            return {}
+        rows = await self.session.execute(
+            select(DiscoveredURL.brewery_id, func.max(Extraction.created_at))
+            .join(Extraction, Extraction.discovered_url_id == DiscoveredURL.id)
+            .where(DiscoveredURL.brewery_id.in_(brewery_ids))
+            .group_by(DiscoveredURL.brewery_id)
+        )
+        return {brewery_id: latest for brewery_id, latest in rows.all()}

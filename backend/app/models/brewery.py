@@ -27,6 +27,8 @@ class Brewery(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
     slug: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
     website: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Open Brewery DB classification: micro, brewpub, nano, macro, regional, …
+    brewery_type: Mapped[str | None] = mapped_column(String(40), nullable=True)
 
     city: Mapped[str | None] = mapped_column(String(120), nullable=True)
     state: Mapped[str | None] = mapped_column(String(2), nullable=True, index=True)

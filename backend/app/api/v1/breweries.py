@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import SessionDep
 from app.repositories.brewery import BreweryRepository
+from app.repositories.extraction import ExtractionRepository
 from app.schemas.brewery import BreweryCreate, BreweryPage, BreweryRead
 from app.schemas.extraction import TapListExtraction
 from app.schemas.stats import BreweryStateStat
@@ -16,6 +17,12 @@ from app.services.brewery import BreweryService
 from app.services.current import CurrentDataService
 
 router = APIRouter(prefix="/breweries", tags=["breweries"])
+
+
+def _to_read(brewery, tap_updated_at) -> BreweryRead:  # type: ignore[no-untyped-def]
+    read = BreweryRead.model_validate(brewery)
+    read.tap_updated_at = tap_updated_at
+    return read
 
 
 @router.post(
@@ -41,8 +48,11 @@ async def list_breweries(
     items, total = await BreweryService(session).list(
         state=state, limit=limit, offset=offset
     )
+    tap_times = await ExtractionRepository(session).latest_times_for_breweries(
+        [b.id for b in items]
+    )
     return BreweryPage(
-        items=[BreweryRead.model_validate(item) for item in items],
+        items=[_to_read(b, tap_times.get(b.id)) for b in items],
         total=total,
         limit=limit,
         offset=offset,
@@ -66,7 +76,8 @@ async def get_brewery(
     brewery_id: uuid.UUID, session: AsyncSession = SessionDep
 ) -> BreweryRead:
     brewery = await BreweryService(session).get(brewery_id)
-    return BreweryRead.model_validate(brewery)
+    tap_times = await ExtractionRepository(session).latest_times_for_breweries([brewery.id])
+    return _to_read(brewery, tap_times.get(brewery.id))
 
 
 @router.get(
