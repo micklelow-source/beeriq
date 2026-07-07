@@ -8,8 +8,12 @@ from fastapi import APIRouter, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import SessionDep
+from app.repositories.brewery import BreweryRepository
 from app.schemas.brewery import BreweryCreate, BreweryPage, BreweryRead
+from app.schemas.extraction import TapListExtraction
+from app.schemas.stats import BreweryStateStat
 from app.services.brewery import BreweryService
+from app.services.current import CurrentDataService
 
 router = APIRouter(prefix="/breweries", tags=["breweries"])
 
@@ -45,9 +49,33 @@ async def list_breweries(
     )
 
 
+@router.get(
+    "/stats/by-state",
+    response_model=list[BreweryStateStat],
+    summary="Brewery counts per state (for the map)",
+)
+async def stats_by_state(
+    session: AsyncSession = SessionDep,
+) -> list[BreweryStateStat]:
+    rows = await BreweryRepository(session).count_by_state()
+    return [BreweryStateStat(state=state, count=count) for state, count in rows]
+
+
 @router.get("/{brewery_id}", response_model=BreweryRead, summary="Get a brewery")
 async def get_brewery(
     brewery_id: uuid.UUID, session: AsyncSession = SessionDep
 ) -> BreweryRead:
     brewery = await BreweryService(session).get(brewery_id)
     return BreweryRead.model_validate(brewery)
+
+
+@router.get(
+    "/{brewery_id}/current",
+    response_model=TapListExtraction,
+    summary="Current tap list, events, food trucks, and hours",
+)
+async def get_brewery_current(
+    brewery_id: uuid.UUID, session: AsyncSession = SessionDep
+) -> TapListExtraction:
+    await BreweryService(session).get(brewery_id)  # 404 if unknown
+    return await CurrentDataService(session).for_brewery(brewery_id)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.models.brewery import Brewery
 from app.repositories.base import BaseRepository
@@ -29,3 +29,14 @@ class BreweryRepository(BaseRepository[Brewery]):
             .offset(offset)
         )
         return list(result)
+
+    async def count_by_state(self) -> list[tuple[str, int]]:
+        """Return ``(state, count)`` pairs for every state with breweries."""
+
+        result = await self.session.execute(
+            select(Brewery.state, func.count())
+            .where(Brewery.state.is_not(None))
+            .group_by(Brewery.state)
+            .order_by(Brewery.state)
+        )
+        return [(state, count) for state, count in result.all()]

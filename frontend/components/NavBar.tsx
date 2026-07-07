@@ -10,7 +10,13 @@ export function NavBar() {
         </Link>
         <div className="flex gap-4 text-sm text-neutral-600">
           <Link href="/" className="hover:text-brew-600">
-            Breweries
+            Dashboard
+          </Link>
+          <Link href="/events" className="hover:text-brew-600">
+            Events
+          </Link>
+          <Link href="/food-trucks" className="hover:text-brew-600">
+            Food Trucks
           </Link>
           <Link href="/feed" className="hover:text-brew-600">
             Feed
