@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { TripMap } from "@/components/TripMap";
 import { useBreweriesByState } from "@/hooks/useBreweriesByState";
 import {
   driveEstimate,
@@ -59,15 +60,25 @@ export default function PlanStatePage() {
     }
   }
 
+  const routeCoords = useMemo(
+    () => route.map(coordsOf).filter((p): p is LatLng => p != null),
+    [route],
+  );
+
+  const allCoords = useMemo(
+    () => (data?.items ?? []).map(coordsOf).filter((p): p is LatLng => p != null),
+    [data],
+  );
+
   const mapsUrl = useMemo(() => {
-    const pts = route.map(coordsOf).filter((p): p is LatLng => p != null);
+    const pts = routeCoords;
     if (pts.length < 2) return null;
     const origin = pts[0];
     const dest = pts[pts.length - 1];
     const way = pts.slice(1, -1).map((p) => `${p.lat},${p.lng}`).join("|");
     const base = `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${dest.lat},${dest.lng}`;
     return way ? `${base}&waypoints=${encodeURIComponent(way)}` : base;
-  }, [route]);
+  }, [routeCoords]);
 
   const move = (i: number, dir: -1 | 1) =>
     setRoute((r) => {
@@ -90,6 +101,10 @@ export default function PlanStatePage() {
           Add breweries to build your route. Driving times are straight-line estimates.
         </p>
       </header>
+
+      <div className="mb-6">
+        <TripMap stops={routeCoords} allCoords={allCoords} stateName={stateName} />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Picker */}
