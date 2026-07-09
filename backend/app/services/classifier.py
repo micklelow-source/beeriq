@@ -16,6 +16,7 @@ CANDIDATE_PATHS: tuple[str, ...] = (
     "tap",
     "taps",
     "on-tap",
+    "ontap",
     "beer",
     "beers",
     "draft",
@@ -48,6 +49,38 @@ _KEYWORD_RULES: tuple[tuple[str, PageType, float], ...] = (
 )
 
 
+# Phrases in a page's *content* that strongly indicate a live tap list, so a page
+# is classified as TAP even when its URL/link text is generic (e.g. "/menu").
+_STRONG_TAP_MARKERS: tuple[str, ...] = (
+    "what's on tap",
+    "whats on tap",
+    "what's pouring",
+    "whats pouring",
+    "currently on tap",
+    "current offerings",
+    "current taps",
+    "current beers",
+    "on tap now",
+    "now pouring",
+    "currently pouring",
+    "tap list",
+    "tap menu",
+    "beer menu",
+    "draft list",
+    "draught list",
+    "beers on tap",
+    "on draft",
+)
+# Weaker signals — common but also appear in navigation/boilerplate.
+_WEAK_TAP_MARKERS: tuple[str, ...] = (
+    "on tap",
+    "our beers",
+    "taproom",
+    "tap room",
+    "menu",
+)
+
+
 def classify_token(token: str) -> tuple[PageType, float]:
     """Classify an arbitrary token (a URL path segment or link text)."""
 
@@ -56,6 +89,21 @@ def classify_token(token: str) -> tuple[PageType, float]:
         if keyword in lowered:
             return page_type, confidence
     return PageType.UNKNOWN, 0.0
+
+
+def content_tap_confidence(text: str) -> float:
+    """Confidence that a page's *body text* is a tap list (0.0–0.9).
+
+    Strong phrases ("what's on tap", "current offerings", "tap menu", …) score
+    high; weaker ones ("on tap", "menu") score lower.
+    """
+
+    lowered = text.lower()
+    if any(marker in lowered for marker in _STRONG_TAP_MARKERS):
+        return 0.9
+    if any(marker in lowered for marker in _WEAK_TAP_MARKERS):
+        return 0.5
+    return 0.0
 
 
 def classify_url(url: str, *, link_text: str = "") -> tuple[PageType, float]:

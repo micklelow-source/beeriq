@@ -19,11 +19,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.core.logging import get_logger
-from app.integrations.fetcher import Fetcher, FetchRequest
+from app.integrations.fetcher import Fetcher, FetchRequest, FetchResponse
 from app.models.brewery import Brewery
 from app.models.discovered_url import DiscoveredURL, PageType
 from app.repositories.discovered_url import DiscoveredURLRepository
-from app.services.classifier import CANDIDATE_PATHS, classify_url
+from app.services.classifier import (
+    CANDIDATE_PATHS,
+    classify_url,
+    content_tap_confidence,
+)
 
 logger = get_logger(__name__)
 
@@ -94,6 +98,9 @@ class DiscoveryService:
 
         home_links = await self._fetch_home_links(base)
         candidates.update(home_links)
+        # Probe the home page too — some breweries list taps on it, detected by
+        # content markers below.
+        candidates.add(base)
 
         logger.info(
             "Discovering brewery site",
@@ -107,10 +114,17 @@ class DiscoveryService:
         )
 
         discovered: list[DiscoveredURL] = []
-        for url, reachable in results:
-            if not reachable:
+        for url, response in results:
+            if response is None or not response.ok:
                 continue
             page_type, confidence = classify_url(url)
+            # Promote to TAP when the page body reads like a tap list, even if the
+            # URL is generic (e.g. "/menu" or the home page).
+            content_conf = content_tap_confidence(response.text)
+            if content_conf > confidence:
+                page_type, confidence = PageType.TAP, content_conf
+            if confidence <= 0:
+                continue
             record = await self._upsert(brewery, url, page_type, confidence)
             if record is not None:
                 discovered.append(record)
@@ -149,16 +163,16 @@ class DiscoveryService:
 
     async def _probe(
         self, url: str, semaphore: asyncio.Semaphore
-    ) -> tuple[str, bool]:
-        """Return ``(url, reachable)`` — whether the URL responds successfully."""
+    ) -> tuple[str, FetchResponse | None]:
+        """Return ``(url, response)`` — the fetched response, or None on failure."""
 
         async with semaphore:
             try:
                 response = await self.fetcher.fetch(FetchRequest(url=url))
             except Exception as exc:
                 logger.debug("Probe failed", extra={"url": url, "error": str(exc)})
-                return url, False
-            return url, response.ok
+                return url, None
+            return url, response
 
     async def _upsert(
         self,

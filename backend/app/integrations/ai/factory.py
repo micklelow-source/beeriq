@@ -31,6 +31,11 @@ def build_ai_provider(settings: Settings | None = None) -> AIProvider:
             api_key=settings.anthropic_api_key,
         )
 
+    if provider == "heuristic":
+        from app.integrations.ai.heuristic_provider import HeuristicProvider
+
+        return HeuristicProvider()
+
     if provider in {"openai", "local"}:
         raise NotImplementedError(
             f"AI provider {provider!r} is specified in the roadmap (spec §3, ADR-0004) "

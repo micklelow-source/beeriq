@@ -14,7 +14,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 Environment = Literal["development", "test", "production"]
-AIProviderName = Literal["fake", "anthropic", "openai", "local"]
+AIProviderName = Literal["fake", "heuristic", "anthropic", "openai", "local"]
 
 
 class Settings(BaseSettings):
