@@ -1,0 +1,50 @@
+# Render Blueprint — production equivalent of docker-compose.yml.
+# Import at https://dashboard.render.com/blueprints, pointing at this repo.
+#
+# After the first deploy, confirm the actual public URLs Render assigned to
+# each service (dashboard shows them under each service's name). If they
+# differ from the *.onrender.com names assumed below, update:
+#   - brewiq-frontend's NEXT_PUBLIC_API_BASE_URL (then trigger a redeploy —
+#     it's baked into the JS bundle at build time)
+#   - brewiq-api's BREWIQ_CORS_ALLOW_ORIGINS (takes effect on next restart)
+
+databases:
+  - name: brewiq-db
+    databaseName: brewiq
+    user: brewiq
+    plan: free
+
+services:
+  - type: web
+    name: brewiq-api
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    dockerCommand: "sh -c 'alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000'"
+    plan: free
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: BREWIQ_ENV
+        value: production
+      - key: BREWIQ_LOG_JSON
+        value: "true"
+      - key: BREWIQ_AI_PROVIDER
+        value: heuristic
+      - key: BREWIQ_DATABASE_URL
+        fromDatabase:
+          name: brewiq-db
+          property: connectionString
+      - key: BREWIQ_CORS_ALLOW_ORIGINS
+        value: https://brewiq-frontend.onrender.com
+      - key: BREWIQ_HTTP_USER_AGENT
+        value: "BrewIQBot/0.1 (+https://github.com/micklelow-source/beeriq)"
+
+  - type: web
+    name: brewiq-frontend
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://brewiq-api.onrender.com
