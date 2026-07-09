@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { BreweryCard } from "@/components/BreweryCard";
+import { BreweryMap } from "@/components/BreweryMap";
 import { useBreweriesByState } from "@/hooks/useBreweriesByState";
 import { recencyBucket } from "@/lib/format";
 import { ABBR_TO_STATE_NAME } from "@/lib/regions";
@@ -190,6 +191,12 @@ export default function StatePage() {
       </div>
 
       {isLoading && <p className="mt-8 text-muted-foreground">Loading breweries…</p>}
+
+      {!isLoading && filtered.length > 0 && (
+        <div className="mt-6">
+          <BreweryMap breweries={filtered} />
+        </div>
+      )}
 
       {!isLoading && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

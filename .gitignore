@@ -39,3 +39,6 @@ backend/var/
 Thumbs.db
 .idea/
 .vscode/
+
+# Claude Code local settings (may contain machine-specific permissions/secrets)
+.claude/settings.local.json
