@@ -43,7 +43,12 @@ class ChangeEvent(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("discovered_urls.id", ondelete="CASCADE"), nullable=False, index=True
     )
     event_type: Mapped[ChangeEventType] = mapped_column(
-        SAEnum(ChangeEventType, name="change_event_type"), nullable=False
+        SAEnum(
+            ChangeEventType,
+            name="change_event_type",
+            values_callable=lambda enum_cls: [e.value for e in enum_cls],
+        ),
+        nullable=False,
     )
     summary: Mapped[str] = mapped_column(String(500), nullable=False)
     details: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)

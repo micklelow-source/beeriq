@@ -42,7 +42,13 @@ class DiscoveredURL(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     )
     url: Mapped[str] = mapped_column(String(1000), nullable=False)
     page_type: Mapped[PageType] = mapped_column(
-        SAEnum(PageType, name="page_type"), nullable=False, default=PageType.UNKNOWN
+        SAEnum(
+            PageType,
+            name="page_type",
+            values_callable=lambda enum_cls: [e.value for e in enum_cls],
+        ),
+        nullable=False,
+        default=PageType.UNKNOWN,
     )
     # Confidence in the page-type classification, 0.0–1.0.
     confidence: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
