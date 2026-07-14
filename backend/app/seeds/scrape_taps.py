@@ -9,10 +9,15 @@ tap list, and recompute the score.
     python -m app.seeds.scrape_taps            # all NH breweries with a website
     python -m app.seeds.scrape_taps --limit 25 # first 25 only
     python -m app.seeds.scrape_taps --state NH
+    python -m app.seeds.scrape_taps --state CT ME MA NH RI VT
+    python -m app.seeds.scrape_taps --state ALL # every state in the directory
 
 Note: Open Brewery DB has no tap lists — these come only from scraping. Sites
 that render their tap list with JavaScript won't yield beers via httpx; those
-need the Playwright fetcher (spec §2) and/or the Anthropic provider.
+need the Playwright fetcher (spec §2) and/or the Anthropic provider. A brewery
+already holding a richer, manually-curated extraction is never overwritten by
+an empty automated result — ``diff.record`` is only called when beers are
+actually found.
 """
 
 from __future__ import annotations
@@ -28,6 +33,7 @@ from app.integrations.fetcher import HttpxFetcher
 from app.models.brewery import Brewery
 from app.models.discovered_url import PageType
 from app.repositories.brewery import BreweryRepository
+from app.seeds.directory import US_STATES
 from app.services.diff import DiffService
 from app.services.discovery import DiscoveryService
 from app.services.extraction import ExtractionService
@@ -71,8 +77,43 @@ async def _scrape_one(session, fetcher, provider, run_settings, brewery: Brewery
     return 0
 
 
-async def scrape_taps(*, state: str = "NH", limit: int | None = None) -> dict[str, int]:
-    """Scrape tap lists for a state's breweries. Returns run statistics."""
+async def _scrape_one_isolated(
+    semaphore: asyncio.Semaphore, fetcher, provider, run_settings, brewery: Brewery
+) -> tuple[bool, int]:
+    """Run ``_scrape_one`` under its own session so many breweries (each on a
+    different external host) can be processed concurrently — a single
+    AsyncSession isn't safe to share across interleaved coroutines. Returns
+    ``(had_error, beers_found)``."""
+
+    async with semaphore:
+        async with session_scope() as session:
+            try:
+                found = await _scrape_one(session, fetcher, provider, run_settings, brewery)
+                await ScoringService(session).compute_and_store(brewery.id)
+                return False, found
+            except Exception as exc:
+                logger.warning(
+                    "Brewery scrape failed",
+                    extra={"brewery": brewery.slug, "error": str(exc)},
+                )
+                return True, 0
+
+
+async def scrape_taps(
+    *, state: str = "NH", limit: int | None = None, concurrency: int = 15
+) -> dict[str, int]:
+    """Scrape tap lists for a state's breweries, or every state if ``state="ALL"``.
+    Breweries are processed concurrently (bounded by ``concurrency``) since
+    each lives on a different external host — safe and far faster than one
+    at a time. Returns run statistics."""
+
+    if state == "ALL":
+        totals = {"attempted": 0, "with_taps": 0, "beers": 0, "errors": 0}
+        for state_code in sorted(US_STATES):
+            stats = await scrape_taps(state=state_code, limit=limit, concurrency=concurrency)
+            for key in totals:
+                totals[key] += stats[key]
+        return totals
 
     settings = get_settings()
     run_settings = settings.model_copy(
@@ -81,49 +122,71 @@ async def scrape_taps(*, state: str = "NH", limit: int | None = None) -> dict[st
     provider = build_ai_provider(settings)
     stats = {"attempted": 0, "with_taps": 0, "beers": 0, "errors": 0}
 
-    async with HttpxFetcher(run_settings) as fetcher, session_scope() as session:
-        repo = BreweryRepository(session)
-        targets: list[Brewery] = []
-        offset = 0
-        while True:
-            page = await repo.list_by_state(state, limit=200, offset=offset)
-            if not page:
-                break
-            targets.extend(b for b in page if b.website)
-            if len(page) < 200:
-                break
-            offset += 200
-        if limit is not None:
-            targets = targets[:limit]
+    async with HttpxFetcher(run_settings) as fetcher:
+        async with session_scope() as session:
+            repo = BreweryRepository(session)
+            targets: list[Brewery] = []
+            offset = 0
+            while True:
+                page = await repo.list_by_state(state, limit=200, offset=offset)
+                if not page:
+                    break
+                targets.extend(b for b in page if b.website)
+                if len(page) < 200:
+                    break
+                offset += 200
+            if limit is not None:
+                targets = targets[:limit]
 
         logger.info("Scraping tap lists", extra={"state": state, "targets": len(targets)})
-        for brewery in targets:
-            stats["attempted"] += 1
-            try:
-                found = await _scrape_one(session, fetcher, provider, run_settings, brewery)
-                await ScoringService(session).compute_and_store(brewery.id)
-                await session.commit()
-                if found:
-                    stats["with_taps"] += 1
-                    stats["beers"] += found
-            except Exception as exc:
-                await session.rollback()
-                stats["errors"] += 1
-                logger.warning(
-                    "Brewery scrape failed",
-                    extra={"brewery": brewery.slug, "error": str(exc)},
-                )
+        semaphore = asyncio.Semaphore(concurrency)
+        results = await asyncio.gather(
+            *(
+                _scrape_one_isolated(semaphore, fetcher, provider, run_settings, brewery)
+                for brewery in targets
+            )
+        )
+
+    stats["attempted"] = len(targets)
+    for had_error, found in results:
+        if had_error:
+            stats["errors"] += 1
+        elif found:
+            stats["with_taps"] += 1
+            stats["beers"] += found
 
     logger.info("Scrape complete", extra=stats)
     return stats
 
 
+async def _scrape_many(states: list[str], *, limit: int | None, concurrency: int) -> dict[str, int]:
+    if states == ["ALL"]:
+        return await scrape_taps(state="ALL", limit=limit, concurrency=concurrency)
+
+    totals = {"attempted": 0, "with_taps": 0, "beers": 0, "errors": 0}
+    for state_code in states:
+        stats = await scrape_taps(state=state_code, limit=limit, concurrency=concurrency)
+        for key in totals:
+            totals[key] += stats[key]
+    return totals
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Scrape brewery tap lists.")
-    parser.add_argument("--state", default="NH")
+    parser.add_argument(
+        "--state",
+        nargs="+",
+        default=["NH"],
+        help='One or more USPS state codes, or "ALL" for every state.',
+    )
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument(
+        "--concurrency", type=int, default=15, help="Breweries scraped in parallel."
+    )
     args = parser.parse_args()
-    stats = asyncio.run(scrape_taps(state=args.state, limit=args.limit))
+    stats = asyncio.run(
+        _scrape_many(args.state, limit=args.limit, concurrency=args.concurrency)
+    )
     logger.info(
         "Done: %d/%d breweries with taps, %d beers, %d errors",
         stats["with_taps"],

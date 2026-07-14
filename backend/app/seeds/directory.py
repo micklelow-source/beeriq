@@ -1,7 +1,7 @@
 """Import a state's brewery directory from Open Brewery DB.
 
     python -m app.seeds.directory --state NH
-    python -m app.seeds.directory --state ME VT MA RI CT
+    python -m app.seeds.directory --state NY NJ PA
 
 Idempotent (upsert by slug). Records with an invalid website URL are imported
 without a website rather than skipped, so directory coverage stays complete.
@@ -22,15 +22,22 @@ from app.services.brewery import BreweryService
 
 logger = get_logger(__name__)
 
-# Open Brewery DB state slug, keyed by USPS code — New England for now (spec's
-# initial coverage area); expand as the directory grows to other regions.
-NEW_ENGLAND_STATES: dict[str, str] = {
-    "CT": "connecticut",
-    "ME": "maine",
-    "MA": "massachusetts",
-    "NH": "new_hampshire",
-    "RI": "rhode_island",
-    "VT": "vermont",
+# Open Brewery DB state slug, keyed by USPS code — all 50 states plus DC.
+US_STATES: dict[str, str] = {
+    "AL": "alabama", "AK": "alaska", "AZ": "arizona", "AR": "arkansas",
+    "CA": "california", "CO": "colorado", "CT": "connecticut", "DE": "delaware",
+    "DC": "district_of_columbia",
+    "FL": "florida", "GA": "georgia", "HI": "hawaii", "ID": "idaho",
+    "IL": "illinois", "IN": "indiana", "IA": "iowa", "KS": "kansas",
+    "KY": "kentucky", "LA": "louisiana", "ME": "maine", "MD": "maryland",
+    "MA": "massachusetts", "MI": "michigan", "MN": "minnesota", "MS": "mississippi",
+    "MO": "missouri", "MT": "montana", "NE": "nebraska", "NV": "nevada",
+    "NH": "new_hampshire", "NJ": "new_jersey", "NM": "new_mexico", "NY": "new_york",
+    "NC": "north_carolina", "ND": "north_dakota", "OH": "ohio", "OK": "oklahoma",
+    "OR": "oregon", "PA": "pennsylvania", "RI": "rhode_island", "SC": "south_carolina",
+    "SD": "south_dakota", "TN": "tennessee", "TX": "texas", "UT": "utah",
+    "VT": "vermont", "VA": "virginia", "WA": "washington", "WV": "west_virginia",
+    "WI": "wisconsin", "WY": "wyoming",
 }
 
 
@@ -49,7 +56,7 @@ def _to_payload(record: DirectoryBrewery, *, drop_website: bool = False) -> Brew
 async def import_state_directory(state_code: str) -> int:
     """Fetch and upsert all active breweries for one state. Returns count imported."""
 
-    state_slug = NEW_ENGLAND_STATES[state_code]
+    state_slug = US_STATES[state_code]
     async with OpenBreweryDBClient() as client:
         records = await client.breweries_by_state(state_slug, state_code)
 
@@ -77,7 +84,7 @@ def main() -> None:
     parser.add_argument(
         "--state",
         nargs="+",
-        choices=sorted(NEW_ENGLAND_STATES),
+        choices=sorted(US_STATES),
         default=["NH"],
         help="One or more USPS state codes to import.",
     )
