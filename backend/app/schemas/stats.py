@@ -10,3 +10,5 @@ class BreweryStateStat(BaseModel):
 
     state: str
     count: int
+    with_taps: int = 0
+    """Breweries in this state with at least one recorded tap-list extraction."""

@@ -5,7 +5,7 @@ import type { Feature, FeatureCollection, Geometry } from "geojson";
 import { useRouter } from "next/navigation";
 import { feature } from "topojson-client";
 
-import { useStateStats } from "@/hooks/useStateStats";
+import { useStateStats, useStateTapStats } from "@/hooks/useStateStats";
 import { REGION_COLORS, REGIONS, regionOf, STATE_NAME_TO_ABBR } from "@/lib/regions";
 import statesData from "us-atlas/states-10m.json";
 
@@ -26,6 +26,7 @@ const pathGen = geoPath(projection);
 export function UsMap({ basePath = "/states" }: { basePath?: string }) {
   const router = useRouter();
   const { data: counts = {} } = useStateStats();
+  const { data: tapCounts = {} } = useStateTapStats();
 
   const go = (abbr: string) => router.push(`${basePath}/${abbr}`);
 
@@ -43,18 +44,26 @@ export function UsMap({ basePath = "/states" }: { basePath?: string }) {
             if (!abbr) return null;
             const region = regionOf(abbr);
             const count = counts[abbr] ?? 0;
+            const withTaps = tapCounts[abbr] ?? 0;
             const color = region ? REGION_COLORS[region] : "#9ca3af";
+            const label = [
+              f.properties.name,
+              count > 0 ? `${count} breweries` : null,
+              withTaps > 0 ? `${withTaps} with tap lists` : null,
+            ]
+              .filter(Boolean)
+              .join(" — ");
             return (
               <path
                 key={String(f.id)}
                 d={pathGen(f) ?? undefined}
-                className={`state ${count > 0 ? "active" : ""}`}
+                className={`state ${count > 0 ? "active" : ""} ${withTaps > 0 ? "has-taps" : ""}`}
                 style={{ fill: color }}
                 onClick={() => go(abbr)}
                 role="button"
-                aria-label={`${f.properties.name}: ${count} breweries`}
+                aria-label={label}
               >
-                <title>{`${f.properties.name}${count > 0 ? ` — ${count} breweries` : ""}`}</title>
+                <title>{label}</title>
               </path>
             );
           })}
@@ -71,6 +80,13 @@ export function UsMap({ basePath = "/states" }: { basePath?: string }) {
             {r}
           </span>
         ))}
+        <span className="flex items-center gap-1.5">
+          <span
+            className="inline-block h-3 w-3 rounded-sm border-2"
+            style={{ borderColor: "oklch(52% 0.22 258)", background: "transparent" }}
+          />
+          Has tap lists
+        </span>
         <span className="opacity-60">· shaded = has breweries · click to explore</span>
       </div>
 
@@ -78,18 +94,26 @@ export function UsMap({ basePath = "/states" }: { basePath?: string }) {
         .state {
           fill-opacity: 0.22;
           stroke: oklch(18% 0.02 60);
-          stroke-width: 0.5;
+          stroke-width: 0.5px;
           cursor: pointer;
-          transition: fill-opacity 0.15s, stroke 0.15s;
+          transition: fill-opacity 0.15s, stroke 0.15s, stroke-width 0.15s;
           outline: none;
         }
         .state.active {
           fill-opacity: 0.9;
         }
+        .state.has-taps {
+          stroke: oklch(52% 0.22 258);
+          stroke-width: 2px;
+        }
         .state:hover {
           fill-opacity: 1;
           stroke: oklch(96% 0.02 85);
-          stroke-width: 1;
+          stroke-width: 1px;
+        }
+        .state.has-taps:hover {
+          stroke: oklch(52% 0.22 258);
+          stroke-width: 2.5px;
         }
       `}</style>
     </div>

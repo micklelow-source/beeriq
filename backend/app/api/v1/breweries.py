@@ -67,8 +67,13 @@ async def list_breweries(
 async def stats_by_state(
     session: AsyncSession = SessionDep,
 ) -> list[BreweryStateStat]:
-    rows = await BreweryRepository(session).count_by_state()
-    return [BreweryStateStat(state=state, count=count) for state, count in rows]
+    repo = BreweryRepository(session)
+    counts = await repo.count_by_state()
+    with_taps = dict(await repo.count_with_taps_by_state())
+    return [
+        BreweryStateStat(state=state, count=count, with_taps=with_taps.get(state, 0))
+        for state, count in counts
+    ]
 
 
 @router.get("/{brewery_id}", response_model=BreweryRead, summary="Get a brewery")

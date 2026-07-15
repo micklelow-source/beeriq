@@ -62,14 +62,19 @@ async def test_stats_by_state_endpoint(session: AsyncSession) -> None:
     await _brewery_with_extraction(session, "A", "NH", TapListExtraction())
     await _brewery_with_extraction(session, "B", "NH", TapListExtraction())
     await _brewery_with_extraction(session, "C", "ME", TapListExtraction())
+    # No tap data at all: should count toward "count" but not "with_taps".
+    session.add(Brewery(name="D", slug="d", website="https://d.com", state="VT"))
+    await session.commit()
 
     app = create_app()
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/api/v1/breweries/stats/by-state")
     assert resp.status_code == 200
-    counts = {row["state"]: row["count"] for row in resp.json()}
-    assert counts == {"NH": 2, "ME": 1}
+    rows = {row["state"]: row for row in resp.json()}
+    assert rows["NH"]["count"] == 2 and rows["NH"]["with_taps"] == 2
+    assert rows["ME"]["count"] == 1 and rows["ME"]["with_taps"] == 1
+    assert rows["VT"]["count"] == 1 and rows["VT"]["with_taps"] == 0
 
 
 @pytest.mark.asyncio

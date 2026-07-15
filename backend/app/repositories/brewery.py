@@ -5,6 +5,8 @@ from __future__ import annotations
 from sqlalchemy import func, select
 
 from app.models.brewery import Brewery
+from app.models.discovered_url import DiscoveredURL
+from app.models.extraction import Extraction
 from app.repositories.base import BaseRepository
 
 
@@ -35,6 +37,20 @@ class BreweryRepository(BaseRepository[Brewery]):
 
         result = await self.session.execute(
             select(Brewery.state, func.count())
+            .where(Brewery.state.is_not(None))
+            .group_by(Brewery.state)
+            .order_by(Brewery.state)
+        )
+        return [(state, count) for state, count in result.all()]
+
+    async def count_with_taps_by_state(self) -> list[tuple[str, int]]:
+        """Return ``(state, count)`` pairs for breweries with at least one
+        recorded tap-list extraction, for every state with such a brewery."""
+
+        result = await self.session.execute(
+            select(Brewery.state, func.count(func.distinct(Brewery.id)))
+            .join(DiscoveredURL, DiscoveredURL.brewery_id == Brewery.id)
+            .join(Extraction, Extraction.discovered_url_id == DiscoveredURL.id)
             .where(Brewery.state.is_not(None))
             .group_by(Brewery.state)
             .order_by(Brewery.state)
