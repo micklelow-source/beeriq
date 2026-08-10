@@ -57,7 +57,7 @@ export function UsMap({ basePath = "/states" }: { basePath?: string }) {
               <path
                 key={String(f.id)}
                 d={pathGen(f) ?? undefined}
-                className={`state ${count > 0 ? "active" : ""} ${withTaps > 0 ? "has-taps" : ""}`}
+                className={`state ${count > 0 ? "active" : ""} ${withTaps > 0 ? "scanned" : "unscanned"}`}
                 style={{ fill: color }}
                 onClick={() => go(abbr)}
                 role="button"
@@ -83,9 +83,16 @@ export function UsMap({ basePath = "/states" }: { basePath?: string }) {
         <span className="flex items-center gap-1.5">
           <span
             className="inline-block h-3 w-3 rounded-sm border-2"
-            style={{ borderColor: "oklch(52% 0.22 258)", background: "transparent" }}
+            style={{ borderColor: "oklch(79% 0.17 142)", background: "transparent" }}
           />
-          Has tap lists
+          Scanned (active tap lists)
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span
+            className="inline-block h-3 w-3 rounded-sm border-2"
+            style={{ borderColor: "oklch(60% 0.24 29)", background: "transparent" }}
+          />
+          Unscanned
         </span>
         <span className="opacity-60">· shaded = has breweries · click to explore</span>
       </div>
@@ -102,18 +109,26 @@ export function UsMap({ basePath = "/states" }: { basePath?: string }) {
         .state.active {
           fill-opacity: 0.9;
         }
-        .state.has-taps {
-          stroke: oklch(52% 0.22 258);
-          stroke-width: 2px;
+        .state.scanned {
+          stroke: oklch(79% 0.17 142);
+          stroke-width: 2.5px;
+        }
+        .state.unscanned {
+          stroke: oklch(60% 0.24 29);
+          stroke-width: 1.5px;
         }
         .state:hover {
           fill-opacity: 1;
           stroke: oklch(96% 0.02 85);
           stroke-width: 1px;
         }
-        .state.has-taps:hover {
-          stroke: oklch(52% 0.22 258);
-          stroke-width: 2.5px;
+        .state.scanned:hover {
+          stroke: oklch(79% 0.17 142);
+          stroke-width: 3px;
+        }
+        .state.unscanned:hover {
+          stroke: oklch(60% 0.24 29);
+          stroke-width: 2px;
         }
       `}</style>
     </div>
