@@ -29,6 +29,10 @@ def _build_engine(settings: Settings) -> AsyncEngine:
     connect_args = {}
     if settings.database_url.startswith("sqlite"):
         connect_args["check_same_thread"] = False
+    elif settings.is_production and settings.database_url.startswith("postgresql"):
+        # Managed Postgres providers (Render, ...) reject plaintext connections;
+        # asyncpg needs this passed as a connect arg, not a URL query param.
+        connect_args["ssl"] = "require"
     return create_async_engine(
         settings.database_url,
         echo=False,

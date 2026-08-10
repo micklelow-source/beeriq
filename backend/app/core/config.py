@@ -77,6 +77,10 @@ class Settings(BaseSettings):
         return self.env == "test"
 
     @property
+    def is_production(self) -> bool:
+        return self.env == "production"
+
+    @property
     def cors_allow_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_allow_origins.split(",") if origin.strip()]
 
