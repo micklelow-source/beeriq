@@ -1,0 +1,42 @@
+name: Weekly food trucks refresh
+
+# Scrapes brewery food-truck schedules using the heuristic food-truck parser
+# (app.services.food_truck_parser) against the same 6 New England states as
+# weekly-tap-refresh.yml. Runs on its own day (Friday), independent of the
+# tap-list (Monday) and events (Wednesday) refreshes.
+#
+# Requires the same BREWIQ_DATABASE_URL repo secret as the other workflows
+# (Settings > Secrets and variables > Actions).
+
+on:
+  schedule:
+    - cron: "0 6 * * 5" # every Friday, 06:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: weekly-foodtrucks-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Scrape CT/ME/MA/NH/RI/VT food trucks
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      BREWIQ_ENV: production
+      BREWIQ_LOG_JSON: "true"
+      BREWIQ_AI_PROVIDER: heuristic
+      BREWIQ_DATABASE_URL: ${{ secrets.BREWIQ_DATABASE_URL }}
+      BREWIQ_HTTP_USER_AGENT: "BrewIQBot/0.1 (+https://github.com/micklelow-source/beeriq)"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install
+        run: pip install -e .
+      - name: Scrape food trucks
+        run: python -m app.seeds.scrape_food_trucks --state CT ME MA NH RI VT --concurrency 15

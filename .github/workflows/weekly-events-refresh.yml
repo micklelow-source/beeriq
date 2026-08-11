@@ -1,0 +1,44 @@
+name: Weekly events refresh
+
+# Scrapes brewery events (tastings, festivals, trivia nights, ...) using the
+# heuristic events parser (app.services.event_parser) against the same 6
+# New England states as weekly-tap-refresh.yml, since that's where
+# directory coverage is richest. Deliberately runs on a DIFFERENT day than
+# the tap-list refresh (Monday) so the two jobs don't compete for the same
+# runner window or mask each other's failures.
+#
+# Requires the same BREWIQ_DATABASE_URL repo secret as the other workflows
+# (Settings > Secrets and variables > Actions).
+
+on:
+  schedule:
+    - cron: "0 6 * * 3" # every Wednesday, 06:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: weekly-events-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Scrape CT/ME/MA/NH/RI/VT events
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      BREWIQ_ENV: production
+      BREWIQ_LOG_JSON: "true"
+      BREWIQ_AI_PROVIDER: heuristic
+      BREWIQ_DATABASE_URL: ${{ secrets.BREWIQ_DATABASE_URL }}
+      BREWIQ_HTTP_USER_AGENT: "BrewIQBot/0.1 (+https://github.com/micklelow-source/beeriq)"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install
+        run: pip install -e .
+      - name: Scrape events
+        run: python -m app.seeds.scrape_events --state CT ME MA NH RI VT --concurrency 15

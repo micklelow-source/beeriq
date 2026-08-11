@@ -70,3 +70,21 @@ async def test_heuristic_provider_extracts() -> None:
     prompt = "Page text follows:\nHazy Wonder\nHazy IPA\n6.5%\n"
     result = await provider.extract(prompt, schema=TapListExtraction)
     assert any(b.name == "Hazy Wonder" for b in result.beers)
+
+
+@pytest.mark.asyncio
+async def test_heuristic_provider_also_extracts_events_and_food_trucks() -> None:
+    """The heuristic provider runs all three parsers over every page, not
+    just the beer parser -- a tap-list page can also mention an event."""
+
+    provider = HeuristicProvider()
+    prompt = (
+        "Page text follows:\n"
+        "Hazy Wonder\nHazy IPA\n6.5%\n"
+        "Trivia Night - Wednesday 7pm\n"
+        "Tacos El Rey - Friday\n"
+    )
+    result = await provider.extract(prompt, schema=TapListExtraction)
+    assert any(b.name == "Hazy Wonder" for b in result.beers)
+    assert any(e.title == "Trivia Night" for e in result.events)
+    assert any(t.name == "Tacos El Rey" for t in result.food_trucks)
