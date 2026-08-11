@@ -21,7 +21,9 @@ export function DashboardStats() {
   const { data: feed } = useFeed();
 
   const total = counts ? Object.values(counts).reduce((a, b) => a + b, 0) : 0;
-  const states = counts ? Object.keys(counts).length : 0;
+  // DC isn't a state -- its breweries still count toward the total above,
+  // just not toward the "N state(s)" label.
+  const states = counts ? Object.keys(counts).filter((code) => code !== "DC").length : 0;
 
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
