@@ -1,0 +1,42 @@
+name: Weekly tap-list refresh
+
+# Replaces the Render cron job (render.yaml's brewiq-weekly-tap-refresh),
+# which requires a paid Render plan. Runs the same heuristic-parser scrape
+# directly on GitHub's free runners against the production (Neon) database.
+#
+# Requires a repo secret BREWIQ_DATABASE_URL (Settings > Secrets and
+# variables > Actions > New repository secret) set to the same Neon
+# connection string used by brewiq-api on Render.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # every Monday, 06:00 UTC
+  workflow_dispatch: # allows manual "Run workflow" from the Actions tab
+
+concurrency:
+  group: weekly-tap-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Scrape CT/ME/MA/NH/RI/VT tap lists
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      BREWIQ_ENV: production
+      BREWIQ_LOG_JSON: "true"
+      BREWIQ_AI_PROVIDER: heuristic
+      BREWIQ_DATABASE_URL: ${{ secrets.BREWIQ_DATABASE_URL }}
+      BREWIQ_HTTP_USER_AGENT: "BrewIQBot/0.1 (+https://github.com/micklelow-source/beeriq)"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - name: Install
+        run: pip install -e .
+      - name: Scrape
+        run: python -m app.seeds.scrape_taps --state CT ME MA NH RI VT --concurrency 15
