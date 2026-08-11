@@ -1,8 +1,13 @@
 name: Weekly tap-list refresh
 
 # Replaces the Render cron job (render.yaml's brewiq-weekly-tap-refresh),
-# which requires a paid Render plan. Runs the same heuristic-parser scrape
-# directly on GitHub's free runners against the production (Neon) database.
+# which requires a paid Render plan. Runs on GitHub's free runners against
+# the production (Neon) database, in two steps:
+#   1. Check all 50 states + DC for new breweries (Open Brewery DB), then
+#      scrape tap lists for whatever's newly discovered -- not a full
+#      national re-scrape, which would be far too slow for a weekly run.
+#   2. Re-scrape the 6 New England states more deeply, since that's where
+#      directory coverage is richest and tap-list data ages the fastest.
 #
 # Requires a repo secret BREWIQ_DATABASE_URL (Settings > Secrets and
 # variables > Actions > New repository secret) set to the same Neon
@@ -19,7 +24,7 @@ concurrency:
 
 jobs:
   refresh:
-    name: Scrape CT/ME/MA/NH/RI/VT tap lists
+    name: Discover new breweries + refresh New England tap lists
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -38,5 +43,7 @@ jobs:
           cache: pip
       - name: Install
         run: pip install -e .
-      - name: Scrape
+      - name: Check all 50 states + DC for new breweries, scrape what's new
+        run: python -m app.seeds.discover_new_breweries --concurrency 15
+      - name: Re-scrape New England tap lists
         run: python -m app.seeds.scrape_taps --state CT ME MA NH RI VT --concurrency 15

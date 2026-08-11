@@ -26,7 +26,7 @@ _sessionmaker: async_sessionmaker[AsyncSession] | None = None
 def _build_engine(settings: Settings) -> AsyncEngine:
     # ``check_same_thread`` is only meaningful for SQLite (tests); passing connect
     # args unconditionally is harmless because SQLAlchemy filters by dialect.
-    connect_args = {}
+    connect_args: dict[str, bool | str] = {}
     if settings.database_url.startswith("sqlite"):
         connect_args["check_same_thread"] = False
     elif settings.is_production and settings.database_url.startswith("postgresql"):

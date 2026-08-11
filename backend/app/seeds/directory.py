@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import uuid
 
 from pydantic import ValidationError
 
@@ -53,14 +54,21 @@ def _to_payload(record: DirectoryBrewery, *, drop_website: bool = False) -> Brew
     )
 
 
-async def import_state_directory(state_code: str) -> int:
-    """Fetch and upsert all active breweries for one state. Returns count imported."""
+async def import_state_directory(state_code: str) -> tuple[int, list[uuid.UUID]]:
+    """Fetch and upsert all active breweries for one state.
+
+    Returns ``(count_imported, new_brewery_ids)`` -- the second element is
+    every brewery this call actually inserted (not merely backfilled), for
+    callers that want to follow up on just what's new (e.g. scraping tap
+    lists only for breweries the directory didn't have before).
+    """
 
     state_slug = US_STATES[state_code]
     async with OpenBreweryDBClient() as client:
         records = await client.breweries_by_state(state_slug, state_code)
 
     imported = 0
+    new_ids: list[uuid.UUID] = []
     async with session_scope() as session:
         service = BreweryService(session)
         for record in records:
@@ -69,14 +77,16 @@ async def import_state_directory(state_code: str) -> int:
             except ValidationError:
                 # Almost always a malformed website_url — import without it.
                 payload = _to_payload(record, drop_website=True)
-            brewery = await service.upsert_by_slug(payload)
-            # Backfill brewery_type on records imported before this column existed.
-            if brewery.brewery_type != record.brewery_type:
-                brewery.brewery_type = record.brewery_type
+            brewery, created = await service.upsert_by_slug(payload)
+            if created:
+                new_ids.append(brewery.id)
             imported += 1
 
-    logger.info("Directory import complete", extra={"state": state_code, "imported": imported})
-    return imported
+    logger.info(
+        "Directory import complete",
+        extra={"state": state_code, "imported": imported, "new": len(new_ids)},
+    )
+    return imported, new_ids
 
 
 def main() -> None:
@@ -92,8 +102,13 @@ def main() -> None:
 
     async def run() -> None:
         for state_code in args.state:
-            count = await import_state_directory(state_code)
-            logger.info("Imported %d %s breweries from Open Brewery DB", count, state_code)
+            count, new_ids = await import_state_directory(state_code)
+            logger.info(
+                "Imported %d %s breweries from Open Brewery DB (%d new)",
+                count,
+                state_code,
+                len(new_ids),
+            )
 
     asyncio.run(run())
 
