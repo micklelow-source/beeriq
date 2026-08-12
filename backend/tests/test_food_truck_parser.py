@@ -38,6 +38,42 @@ def test_requires_schedule_signal_not_just_a_name_like_line() -> None:
 
 
 def test_deduplicates_by_name() -> None:
-    text = "Tacos El Rey - Friday\nTacos El Rey - Friday\n"
+    text = "Food Trucks\nTacos El Rey - Friday\nTacos El Rey - Friday\n"
     result = parse_food_trucks(text)
     assert sum(t.name == "Tacos El Rey" for t in result) == 1
+
+
+def test_requires_the_page_to_mention_food_trucks_at_all() -> None:
+    """A page that never says "food truck" anywhere is far more likely to
+    be a general events calendar than a food-truck listing -- "Name -
+    Weekday" alone isn't enough to conclude otherwise."""
+
+    text = "Tacos El Rey - Friday\nBBQ Bros - Saturday\n"
+    assert parse_food_trucks(text) == []
+
+
+def test_does_not_mistake_menu_items_near_a_lowercase_day_fragment_for_trucks() -> None:
+    """Regression: a kitchen menu's "sun" inside "sun-dried" (or similar
+    lowercase mid-word fragments) must not read as a Sunday schedule."""
+
+    text = "Cranberry Bog Salad\nWith sun-dried cranberries and goat cheese\n"
+    assert parse_food_trucks(text) == []
+
+
+def test_does_not_mistake_live_music_events_for_food_trucks() -> None:
+    """Regression: an events page listing "Live Music by X - Friday" must
+    not be read as a food truck named "Live Music by X"."""
+
+    text = "Live music by Busted Stuff - Friday\nLive music by Greg Hall - Saturday\n"
+    assert parse_food_trucks(text) == []
+
+
+def test_does_not_leak_extraction_prompt_preamble() -> None:
+    """Regression: HeuristicProvider strips the instruction preamble before
+    parsing, but this guards the parser itself against similar boilerplate."""
+
+    text = 'Page text follows:\n"""\nFood Trucks\nTacos El Rey - Friday\n'
+    result = parse_food_trucks(text)
+    names = {t.name for t in result}
+    assert "Page text follows" not in names
+    assert "Tacos El Rey" in names

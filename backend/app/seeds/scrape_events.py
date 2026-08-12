@@ -26,9 +26,12 @@ from app.seeds.directory import US_STATES
 
 logger = get_logger(__name__)
 
-# Events pages first; tap/beer/menu pages are a fallback since some
-# breweries list an event or two alongside their tap list.
-_PAGE_TYPES = {PageType.EVENTS: 0, PageType.MENU: 1, PageType.TAP: 2, PageType.BEER: 3}
+# Events pages first; tap/beer pages are a fallback since some breweries
+# list an event or two alongside their tap list. Deliberately excludes
+# MENU -- a food/kitchen menu page has no events on it, and the food-truck
+# parser's looser matching mistook menu items for food trucks when MENU
+# was in its own fallback list (same risk applies here).
+_PAGE_TYPES = {PageType.EVENTS: 0, PageType.TAP: 1, PageType.BEER: 2}
 
 
 def _count_events(extraction: TapListExtraction) -> int:

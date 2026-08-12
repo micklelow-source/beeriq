@@ -26,8 +26,10 @@ from app.seeds.directory import US_STATES
 logger = get_logger(__name__)
 
 # Food-truck pages first; a truck schedule often lives on the same page as
-# events, so that's the fallback, then tap/menu as a last resort.
-_PAGE_TYPES = {PageType.FOOD_TRUCK: 0, PageType.EVENTS: 1, PageType.MENU: 2, PageType.TAP: 3}
+# events, so that's the fallback. Deliberately excludes MENU -- a
+# food/kitchen menu page's dish names ("Cranberry Bog Salad") next to a
+# stray day-of-week mention were getting misread as food trucks.
+_PAGE_TYPES = {PageType.FOOD_TRUCK: 0, PageType.EVENTS: 1, PageType.TAP: 2}
 
 
 def _count_trucks(extraction: TapListExtraction) -> int:

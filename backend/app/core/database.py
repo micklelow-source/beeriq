@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -26,20 +27,39 @@ _sessionmaker: async_sessionmaker[AsyncSession] | None = None
 def _build_engine(settings: Settings) -> AsyncEngine:
     # ``check_same_thread`` is only meaningful for SQLite (tests); passing connect
     # args unconditionally is harmless because SQLAlchemy filters by dialect.
-    connect_args: dict[str, bool | str] = {}
-    if settings.database_url.startswith("sqlite"):
+    connect_args: dict[str, bool | str | int] = {}
+    is_sqlite = settings.database_url.startswith("sqlite")
+    if is_sqlite:
         connect_args["check_same_thread"] = False
+        # SQLite's default rollback-journal mode serializes ALL writers (a
+        # writer blocks every other reader/writer), so any concurrent scrape
+        # script -- writing to many different breweries from many isolated
+        # sessions at once, by design -- hits "database is locked" almost
+        # immediately. WAL mode lets readers and writers coexist; the
+        # generous busy_timeout below covers the remaining writer-vs-writer
+        # case by waiting instead of failing outright. Postgres (production)
+        # handles this natively and needs neither.
+        connect_args["timeout"] = 30
     elif settings.is_production and settings.database_url.startswith("postgresql"):
         # Managed Postgres providers (Render, ...) reject plaintext connections;
         # asyncpg needs this passed as a connect arg, not a URL query param.
         connect_args["ssl"] = "require"
-    return create_async_engine(
+    engine = create_async_engine(
         settings.database_url,
         echo=False,
         pool_pre_ping=True,
         future=True,
         connect_args=connect_args,
     )
+    if is_sqlite:
+        @event.listens_for(engine.sync_engine, "connect")
+        def _enable_wal(dbapi_connection, _record):  # type: ignore[no-untyped-def]
+            cursor = dbapi_connection.cursor()
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA busy_timeout=30000")
+            cursor.close()
+
+    return engine
 
 
 def get_engine() -> AsyncEngine:

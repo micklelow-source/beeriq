@@ -29,16 +29,32 @@ class HeuristicProvider:
 
     async def extract(self, prompt: str, *, schema: type[SchemaT]) -> SchemaT:
         if schema is TapListExtraction:
-            # The prompt embeds the page text; these patterns only match
-            # content, not the instruction preamble.
-            beers = parse_tap_list(prompt)
+            text = _strip_preamble(prompt)
+            beers = parse_tap_list(text)
             return cast(
                 SchemaT,
                 beers.model_copy(
                     update={
-                        "events": parse_events(prompt),
-                        "food_trucks": parse_food_trucks(prompt),
+                        "events": parse_events(text),
+                        "food_trucks": parse_food_trucks(text),
                     }
                 ),
             )
         return schema()
+
+
+def _strip_preamble(prompt: str) -> str:
+    """Recover just the page text from ExtractionService's prompt (the
+    instruction preamble followed by the text wrapped in triple quotes).
+
+    The beer parser is specific enough (requires an ABV or known style
+    word) that the preamble was never a real risk for it, but the events
+    and food-truck parsers' looser "name-like line near a date" signal can
+    and did match instructional text like "Page text follows" -- so this
+    is no longer optional now that all three parsers share one prompt.
+    """
+
+    marker = '\n"""\n'
+    if marker in prompt:
+        return prompt.split(marker, 1)[1].removesuffix('\n"""')
+    return prompt

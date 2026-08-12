@@ -37,6 +37,10 @@ _BOILERPLATE = (
     "taproom", "tap room", "read more", "learn more", "close", "account",
     "faq", "welcome", "our story", "find us", "buy tickets", "get tickets",
     "see all events", "past events", "load more", "subscribe to our",
+    "page text follows",
+    # Common UI chrome on calendar/listing widgets, not an event title.
+    "clear filter", "more info", "show more", "filter by", "sort by",
+    "next event", "previous event", "add to calendar",
 )
 
 
