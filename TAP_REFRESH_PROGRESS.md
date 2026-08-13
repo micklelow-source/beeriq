@@ -53,8 +53,16 @@ shared local dev DB (`backend/var/brewiq.sqlite3`).
 | NV    | 2026-08-13T19:54Z | 38        | 2         | 2           | 0      |
 | WA    | 2026-08-13T20:03Z | 352       | 72        | 515         | 0      |
 | OR    | 2026-08-13T20:06Z | 219       | 54        | 448         | 0      |
+| CA†   | 2026-08-13T20:56Z | 694       | 152       | 1129        | 0      |
 
 \* NY, NJ, PA: `--concurrency 15` crashed with `sqlite3.OperationalError: database is locked`
 (known SQLite WAL contention issue). Retried successfully at `--concurrency 5`; figures above are from the
 successful run. Given the consistent failure at 15 for these larger-brewery-count states, `--concurrency 5`
 was used as the default for all subsequent states in this run (still falling back further if needed).
+
+† CA: at 694 breweries (roughly double the next-largest states, CO/WA/NY at ~350-360), a single
+foreground `scrape_taps.py` call couldn't finish within the 10-minute tool-call ceiling at either
+concurrency 5 or 3 (lower concurrency was slower, not faster, confirming request volume rather than
+SQLite lock contention was the bottleneck). Run instead as a detached background process from the
+coordinating session (not a subagent's own backgrounded command, which doesn't survive that subagent's
+turn boundary in this harness) so it could run to completion unconstrained by any single-call timeout.
