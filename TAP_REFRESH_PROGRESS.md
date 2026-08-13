@@ -40,6 +40,7 @@ shared local dev DB (`backend/var/brewiq.sqlite3`).
 | IA    | 2026-08-13T19:22Z | 76        | 13        | 111         | 0      |
 | MO    | 2026-08-13T19:26Z | 121       | 25        | 213         | 0      |
 | KS    | 2026-08-13T19:27Z | 33        | 4         | 41          | 0      |
+| NE    | 2026-08-13T19:28Z | 55        | 12        | 94          | 0      |
 
 \* NY, NJ, PA: `--concurrency 15` crashed with `sqlite3.OperationalError: database is locked`
 (known SQLite WAL contention issue). Retried successfully at `--concurrency 5`; figures above are from the
