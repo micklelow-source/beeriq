@@ -95,7 +95,7 @@ async def import_nh_breweries() -> int:
     async with session_scope() as session:
         service = BreweryService(session)
         for record in NH_BREWERIES:
-            brewery = await service.upsert_by_slug(BreweryCreate(**record))  # type: ignore[arg-type]
+            brewery, _created = await service.upsert_by_slug(BreweryCreate(**record))  # type: ignore[arg-type]
             logger.info("Seeded brewery", extra={"slug": brewery.slug})
     return len(NH_BREWERIES)
 

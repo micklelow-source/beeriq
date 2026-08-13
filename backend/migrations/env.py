@@ -6,11 +6,10 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import pool
 from sqlalchemy.engine import Connection
-from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.core.config import get_settings
+from app.core.database import get_engine
 from app.models import Base  # noqa: F401 - registers metadata
 
 config = context.config
@@ -44,11 +43,10 @@ def _do_run_migrations(connection: Connection) -> None:
 
 
 async def run_migrations_online() -> None:
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    # Reuses the app's own engine builder (app.core.database) instead of
+    # constructing a separate one from raw config, so migrations pick up the
+    # same production SSL connect_args as the rest of the app.
+    connectable = get_engine()
     async with connectable.connect() as connection:
         await connection.run_sync(_do_run_migrations)
     await connectable.dispose()

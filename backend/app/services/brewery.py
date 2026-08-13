@@ -64,16 +64,43 @@ class BreweryService:
         total = await self.repo.count()
         return items, total
 
-    async def upsert_by_slug(self, payload: BreweryCreate) -> Brewery:
-        """Idempotent create-or-return by slug (used by the seed importer)."""
+    async def upsert_by_slug(self, payload: BreweryCreate) -> tuple[Brewery, bool]:
+        """Idempotent upsert by slug (used by the seed importer).
+
+        Returns ``(brewery, created)`` -- ``created`` is True only when this
+        call inserted a brand-new row, letting callers (e.g. a directory
+        refresh) find just the breweries that are new since the last import
+        without a separate diffing pass.
+
+        For an existing brewery, backfills only fields that are currently
+        empty -- it never overwrites data already on the record. Directory
+        re-imports are common (new Open Brewery DB snapshots, re-running for
+        a state), and fields like ``website`` are also where manual
+        corrections live (e.g. fixing a hijacked or dead domain); silently
+        overwriting those with a stale upstream value on every re-import
+        would undo that work.
+        """
 
         slug = payload.slug or slugify(payload.name)
         existing = await self.repo.get_by_slug(slug)
         if existing is not None:
-            return existing
+            if existing.website is None and payload.website:
+                existing.website = str(payload.website)
+            if existing.brewery_type is None and payload.brewery_type:
+                existing.brewery_type = payload.brewery_type
+            if existing.city is None and payload.city:
+                existing.city = payload.city
+            if existing.state is None and payload.state:
+                existing.state = payload.state.upper()
+            if existing.latitude is None and payload.latitude is not None:
+                existing.latitude = payload.latitude
+            if existing.longitude is None and payload.longitude is not None:
+                existing.longitude = payload.longitude
+            await self.session.flush()
+            return existing, False
         try:
-            return await self.create(payload)
+            return await self.create(payload), True
         except ConflictError:  # pragma: no cover - race guard
             refreshed = await self.repo.get_by_slug(slug)
             assert refreshed is not None
-            return refreshed
+            return refreshed, False

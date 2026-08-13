@@ -7,12 +7,14 @@
 #   - brewiq-frontend's NEXT_PUBLIC_API_BASE_URL (then trigger a redeploy —
 #     it's baked into the JS bundle at build time)
 #   - brewiq-api's BREWIQ_CORS_ALLOW_ORIGINS (takes effect on next restart)
-
-databases:
-  - name: brewiq-db
-    databaseName: brewiq
-    user: brewiq
-    plan: free
+#
+# Database: moved off Render's own managed Postgres (the free-tier "brewiq-db"
+# instance expired/became unreachable) onto Neon as of 2026-08-11. Both
+# brewiq-api and brewiq-weekly-tap-refresh's BREWIQ_DATABASE_URL are set to
+# "sync: false" below -- set the Neon connection string manually in each
+# service's Render dashboard env vars rather than committing it here. If the
+# old brewiq-db resource is still visible in the Render dashboard, it can be
+# deleted once you've confirmed nothing else still points at it.
 
 services:
   - type: web
@@ -30,9 +32,7 @@ services:
       - key: BREWIQ_AI_PROVIDER
         value: heuristic
       - key: BREWIQ_DATABASE_URL
-        fromDatabase:
-          name: brewiq-db
-          property: connectionString
+        sync: false # set manually in the Render dashboard — Neon connection string, not committed here
       - key: BREWIQ_CORS_ALLOW_ORIGINS
         value: https://brewiq-frontend.onrender.com
       - key: BREWIQ_HTTP_USER_AGENT
@@ -48,32 +48,8 @@ services:
       - key: NEXT_PUBLIC_API_BASE_URL
         value: https://brewiq-api.onrender.com
 
-  # Weekly automated re-scrape of the 6 New England states (the states with
-  # real directory depth). Render Cron Jobs aren't available on the free
-  # plan — confirm pricing for "starter" (or your chosen plan) before first
-  # deploy. This covers only the keyless heuristic-parser tier (plain HTML,
-  # server-rendered pages); JS-rendered/PDF/image tap lists still need the
-  # manual WebFetch/browser workflow, same as the rest of this project's
-  # tap-list population — a brewery already holding a richer manually-
-  # curated extraction is never overwritten by an empty automated result.
-  - type: cron
-    name: brewiq-weekly-tap-refresh
-    env: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    plan: starter
-    schedule: "0 6 * * 1" # every Monday, 06:00 UTC
-    dockerCommand: "python -m app.seeds.scrape_taps --state CT ME MA NH RI VT --concurrency 15"
-    envVars:
-      - key: BREWIQ_ENV
-        value: production
-      - key: BREWIQ_LOG_JSON
-        value: "true"
-      - key: BREWIQ_AI_PROVIDER
-        value: heuristic
-      - key: BREWIQ_DATABASE_URL
-        fromDatabase:
-          name: brewiq-db
-          property: connectionString
-      - key: BREWIQ_HTTP_USER_AGENT
-        value: "BrewIQBot/0.1 (+https://github.com/micklelow-source/beeriq)"
+# The weekly automated re-scrape of the 6 New England states used to run here
+# as a Render Cron Job, but that requires a paid ("starter") plan. Moved to
+# .github/workflows/weekly-tap-refresh.yml, which runs the same command on
+# GitHub's free scheduled-workflow runners against the same (Neon) database —
+# set the BREWIQ_DATABASE_URL repo secret there for it to work.

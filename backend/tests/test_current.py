@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime, timedelta
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -102,6 +104,86 @@ async def test_events_and_food_trucks_endpoints(session: AsyncSession) -> None:
     assert trucks.status_code == 200
     assert trucks.json()[0]["name"] == "BBQ Pit"
     assert trucks.json()[0]["brewery_state"] == "NH"
+
+
+@pytest.mark.asyncio
+async def test_all_events_merges_across_multiple_urls_and_uses_only_latest(
+    session: AsyncSession,
+) -> None:
+    """The batched all_events()/all_food_trucks() query must reproduce what
+    for_brewery() does for a single brewery: merge data from every
+    discovered URL, dedup by title/name, and use only each URL's most
+    recent extraction -- not a superseded one."""
+
+    brewery = Brewery(name="Multi URL Co", slug="multi-url-co", website="https://m.com", state="NH")
+    session.add(brewery)
+    await session.flush()
+
+    url_a = DiscoveredURL(
+        brewery_id=brewery.id, url="https://m.com/events", page_type=PageType.EVENTS, confidence=0.9
+    )
+    url_b = DiscoveredURL(
+        brewery_id=brewery.id,
+        url="https://m.com/trucks",
+        page_type=PageType.FOOD_TRUCK,
+        confidence=0.9,
+    )
+    session.add_all([url_a, url_b])
+    await session.flush()
+
+    # url_a: a superseded extraction (no events) followed by the real one.
+    # created_at is set explicitly (rather than relying on two inserts
+    # landing in different seconds) since the "latest" query only orders by
+    # created_at -- ties are otherwise possible when extractions are
+    # recorded in quick succession, as they are here.
+    now = datetime.now(UTC)
+    session.add_all(
+        [
+            Extraction(
+                discovered_url_id=url_a.id,
+                payload=TapListExtraction().model_dump(mode="json"),
+                created_at=now - timedelta(minutes=5),
+            ),
+            Extraction(
+                discovered_url_id=url_a.id,
+                payload=TapListExtraction(
+                    events=[EventExtraction(title="Trivia Night")]
+                ).model_dump(mode="json"),
+                created_at=now,
+            ),
+            # url_b: its own event plus a food truck.
+            Extraction(
+                discovered_url_id=url_b.id,
+                payload=TapListExtraction(
+                    events=[EventExtraction(title="Live Music")],
+                    food_trucks=[FoodTruckExtraction(name="Tacos El Rey")],
+                ).model_dump(mode="json"),
+                created_at=now,
+            ),
+        ]
+    )
+    await session.commit()
+
+    service = CurrentDataService(session)
+    events = await service.all_events()
+    trucks = await service.all_food_trucks()
+
+    event_titles = {e.title for _, e in events}
+    assert event_titles == {"Trivia Night", "Live Music"}
+    assert [t.name for _, t in trucks] == ["Tacos El Rey"]
+
+
+@pytest.mark.asyncio
+async def test_all_events_skips_breweries_with_no_extractions(session: AsyncSession) -> None:
+    """A brewery with zero discovered URLs (or none with an extraction)
+    must not appear in the aggregate at all."""
+
+    session.add(Brewery(name="Empty Co", slug="empty-co", website="https://e.com", state="NH"))
+    await session.commit()
+
+    service = CurrentDataService(session)
+    assert await service.all_events() == []
+    assert await service.all_food_trucks() == []
 
 
 @pytest.mark.asyncio

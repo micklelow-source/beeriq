@@ -70,3 +70,47 @@ async def test_heuristic_provider_extracts() -> None:
     prompt = "Page text follows:\nHazy Wonder\nHazy IPA\n6.5%\n"
     result = await provider.extract(prompt, schema=TapListExtraction)
     assert any(b.name == "Hazy Wonder" for b in result.beers)
+
+
+@pytest.mark.asyncio
+async def test_heuristic_provider_also_extracts_events_and_food_trucks() -> None:
+    """The heuristic provider runs all three parsers over every page, not
+    just the beer parser -- a tap-list page can also mention an event."""
+
+    provider = HeuristicProvider()
+    prompt = (
+        "Page text follows:\n"
+        "Hazy Wonder\nHazy IPA\n6.5%\n"
+        "Trivia Night - Wednesday 7pm\n"
+        "Food Trucks\n"
+        "Tacos El Rey - Friday\n"
+    )
+    result = await provider.extract(prompt, schema=TapListExtraction)
+    assert any(b.name == "Hazy Wonder" for b in result.beers)
+    assert any(e.title == "Trivia Night" for e in result.events)
+    assert any(t.name == "Tacos El Rey" for t in result.food_trucks)
+
+
+@pytest.mark.asyncio
+async def test_heuristic_provider_strips_real_instruction_preamble() -> None:
+    """Regression: ExtractionService wraps the page text in the actual
+    prompt as ``{instructions}\\n\"\"\"\\n{text}\\n\"\"\"``. Earlier, events
+    and food trucks were parsed straight from that full prompt and picked
+    up instructional lines like "Page text follows" as if they were real
+    page content (unlike the beer parser, whose ABV/style requirement
+    happened to never match the preamble)."""
+
+    provider = HeuristicProvider()
+    prompt = (
+        "You extract structured brewery information...\n"
+        "Extract:\n"
+        "- events: title, date (as written), and description.\n"
+        "\n"
+        "Page text follows:\n"
+        '"""\n'
+        "Trivia Night - Wednesday 7pm\n"
+        '"""'
+    )
+    result = await provider.extract(prompt, schema=TapListExtraction)
+    event_titles = {e.title for e in result.events}
+    assert event_titles == {"Trivia Night"}
