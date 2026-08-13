@@ -10,6 +10,7 @@ from app.models.brewery_score import BreweryScore
 from app.models.change_event import ChangeEvent, ChangeEventType
 from app.models.discovered_url import DiscoveredURL, PageType
 from app.models.extraction import Extraction
+from app.models.festival import Festival, FestivalCategory
 from app.models.page_snapshot import PageSnapshot
 
 __all__ = [
@@ -20,6 +21,8 @@ __all__ = [
     "ChangeEventType",
     "DiscoveredURL",
     "Extraction",
+    "Festival",
+    "FestivalCategory",
     "PageType",
     "PageSnapshot",
 ]
