@@ -19,6 +19,9 @@ from app.services.classifier import classify_token, classify_url
         ("/menu", PageType.MENU),
         ("/events", PageType.EVENTS),
         ("/food-truck", PageType.FOOD_TRUCK),
+        ("/drinks", PageType.BEER),
+        ("/our-drinks", PageType.BEER),
+        ("/drink-list", PageType.TAP),
         ("/about", PageType.UNKNOWN),
     ],
 )
@@ -43,4 +46,12 @@ def test_link_text_can_override_generic_path() -> None:
         "https://x.com/page/42", link_text="Our Events Calendar"
     )
     assert page_type is PageType.EVENTS
+    assert confidence > 0.0
+
+
+def test_drinks_link_text_is_recognized() -> None:
+    # A "Drinks" nav link (no "beer"/"tap" wording at all) should still surface
+    # as a candidate page, not fall through to UNKNOWN.
+    page_type, confidence = classify_url("https://x.com/page/7", link_text="Drinks")
+    assert page_type is PageType.BEER
     assert confidence > 0.0

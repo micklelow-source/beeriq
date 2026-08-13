@@ -19,7 +19,13 @@ CANDIDATE_PATHS: tuple[str, ...] = (
     "ontap",
     "beer",
     "beers",
+    "our-beers",
+    "beer-list",
     "draft",
+    "drink",
+    "drinks",
+    "drink-list",
+    "our-drinks",
     "menu",
     "menus",
     "events",
@@ -42,6 +48,12 @@ _KEYWORD_RULES: tuple[tuple[str, PageType, float], ...] = (
     ("draught", PageType.TAP, 0.75),
     ("beers", PageType.BEER, 0.8),
     ("beer", PageType.BEER, 0.7),
+    ("drink list", PageType.TAP, 0.85),
+    ("drink-list", PageType.TAP, 0.85),
+    ("drinks menu", PageType.TAP, 0.8),
+    ("our drinks", PageType.BEER, 0.7),
+    ("drinks", PageType.BEER, 0.65),
+    ("drink", PageType.BEER, 0.55),
     ("menu", PageType.MENU, 0.75),
     ("events", PageType.EVENTS, 0.85),
     ("event", PageType.EVENTS, 0.7),
@@ -70,14 +82,19 @@ _STRONG_TAP_MARKERS: tuple[str, ...] = (
     "draught list",
     "beers on tap",
     "on draft",
+    "drink list",
+    "drinks list",
+    "drink menu",
 )
 # Weaker signals — common but also appear in navigation/boilerplate.
 _WEAK_TAP_MARKERS: tuple[str, ...] = (
     "on tap",
     "our beers",
+    "our drinks",
     "taproom",
     "tap room",
     "menu",
+    "drinks",
 )
 
 
