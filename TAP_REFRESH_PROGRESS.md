@@ -6,3 +6,4 @@ shared local dev DB (`backend/var/brewiq.sqlite3`).
 | State | Completed (UTC) | Attempted | With taps | Beers found | Errors |
 |-------|------------------|-----------|-----------|-------------|--------|
 | ME    | 2026-08-13T16:23Z | 66        | 14        | 93          | 0      |
+| NH    | 2026-08-13T16:25Z | 72        | 21        | 205         | 0      |
