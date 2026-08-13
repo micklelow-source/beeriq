@@ -54,6 +54,11 @@ shared local dev DB (`backend/var/brewiq.sqlite3`).
 | WA    | 2026-08-13T20:03Z | 352       | 72        | 515         | 0      |
 | OR    | 2026-08-13T20:06Z | 219       | 54        | 448         | 0      |
 | CA†   | 2026-08-13T20:56Z | 694       | 152       | 1129        | 0      |
+| AK    | 2026-08-13T20:58Z | 51        | 15        | 110         | 0      |
+| HI    | 2026-08-13T20:59Z | 28        | 4         | 33          | 0      |
+
+**Run complete — all 50 states + DC covered.** Totals across all 51 entries:
+6,255 breweries attempted, 1,305 with a scraped tap list, 10,972 beers found, 0 errors.
 
 \* NY, NJ, PA: `--concurrency 15` crashed with `sqlite3.OperationalError: database is locked`
 (known SQLite WAL contention issue). Retried successfully at `--concurrency 5`; figures above are from the
