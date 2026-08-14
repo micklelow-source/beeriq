@@ -17,3 +17,4 @@ Targets only this flagged subset per state, not every brewery.
 | NY    | 2026-08-13T20:10Z | 122      | 2              | 10          | 0      |
 | NJ    | 2026-08-13T20:12Z | 44       | 3              | 6           | 0      |
 | PA    | 2026-08-13T20:15Z | 88       | 5              | 64          | 0      |
+| DE    | 2026-08-13T20:16Z | 6        | 0              | 0           | 0      |
