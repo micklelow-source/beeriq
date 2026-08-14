@@ -58,3 +58,9 @@ Targets only this flagged subset per state, not every brewery.
 | OR    | 2026-08-13T21:21Z | 96       | 5              | 32          | 0      |
 | CA    | 2026-08-13T21:28Z | 251      | 7              | 79          | 0      |
 | AK    | 2026-08-13T21:29Z | 26       | 0              | 0           | 0      |
+| HI    | 2026-08-13T21:30Z | 23       | 0              | 0           | 0      |
+
+## Summary
+
+All 51 states/DC complete. Totals: 2,485 breweries targeted, 98 now have taps
+(3.9%), 903 beers found, 0 errors.
