@@ -50,3 +50,4 @@ Targets only this flagged subset per state, not every brewery.
 | WY    | 2026-08-13T21:03Z | 20       | 0              | 0           | 0      |
 | CO    | 2026-08-13T21:07Z | 129      | 8              | 82          | 0      |
 | NM    | 2026-08-13T21:08Z | 25       | 1              | 18          | 0      |
+| UT    | 2026-08-13T21:09Z | 9        | 1              | 1           | 0      |
