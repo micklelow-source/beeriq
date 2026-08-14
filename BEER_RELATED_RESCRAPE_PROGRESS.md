@@ -24,3 +24,4 @@ Targets only this flagged subset per state, not every brewery.
 | WV    | 2026-08-13T20:19Z | 10       | 0              | 0           | 0      |
 | NC    | 2026-08-13T20:22Z | 99       | 5              | 18          | 0      |
 | SC    | 2026-08-13T20:23Z | 19       | 1              | 1           | 0      |
+| GA    | 2026-08-13T20:24Z | 22       | 1              | 18          | 0      |
