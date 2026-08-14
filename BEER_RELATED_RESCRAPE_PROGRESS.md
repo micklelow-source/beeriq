@@ -9,3 +9,4 @@ Targets only this flagged subset per state, not every brewery.
 | State | Completed (UTC) | Targeted | Now with taps | Beers found | Errors |
 |-------|------------------|----------|----------------|-------------|--------|
 | ME    | 2026-08-13T20:02Z | 22       | 0              | 0           | 0      |
+| NH    | 2026-08-13T20:03Z | 12       | 0              | 0           | 0      |
