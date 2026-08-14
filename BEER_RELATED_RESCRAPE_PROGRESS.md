@@ -13,3 +13,4 @@ Targets only this flagged subset per state, not every brewery.
 | VT    | 2026-08-13T20:04Z | 15       | 1              | 13          | 0      |
 | MA    | 2026-08-13T20:06Z | 41       | 2              | 12          | 0      |
 | RI    | 2026-08-13T20:06Z | 6        | 0              | 0           | 0      |
+| CT    | 2026-08-13T20:08Z | 21       | 1              | 4           | 0      |
