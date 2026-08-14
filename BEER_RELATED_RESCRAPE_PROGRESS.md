@@ -40,3 +40,4 @@ Targets only this flagged subset per state, not every brewery.
 | IL    | 2026-08-13T20:49Z | 82       | 4              | 38          | 0      |
 | WI    | 2026-08-13T20:51Z | 83       | 1              | 13          | 0      |
 | MN    | 2026-08-13T20:53Z | 69       | 3              | 26          | 0      |
+| IA    | 2026-08-13T20:54Z | 34       | 2              | 5           | 0      |
