@@ -46,3 +46,4 @@ Targets only this flagged subset per state, not every brewery.
 | NE    | 2026-08-13T20:58Z | 24       | 2              | 3           | 0      |
 | ND    | 2026-08-13T20:59Z | 8        | 0              | 0           | 0      |
 | SD    | 2026-08-13T21:00Z | 23       | 0              | 0           | 0      |
+| MT    | 2026-08-13T21:01Z | 30       | 1              | 8           | 0      |
