@@ -53,3 +53,4 @@ Targets only this flagged subset per state, not every brewery.
 | UT    | 2026-08-13T21:09Z | 9        | 1              | 1           | 0      |
 | ID    | 2026-08-13T21:10Z | 25       | 1              | 10          | 0      |
 | AZ    | 2026-08-13T21:12Z | 31       | 0              | 0           | 0      |
+| NV    | 2026-08-13T21:13Z | 14       | 0              | 0           | 0      |
