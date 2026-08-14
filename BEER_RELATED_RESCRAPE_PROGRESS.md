@@ -35,3 +35,4 @@ Targets only this flagged subset per state, not every brewery.
 | OK    | 2026-08-13T20:35Z | 16       | 0              | 0           | 0      |
 | TX    | 2026-08-13T20:38Z | 109      | 2              | 6           | 0      |
 | OH    | 2026-08-13T20:41Z | 83       | 4              | 76          | 0      |
+| MI    | 2026-08-13T20:45Z | 131      | 2              | 36          | 0      |
