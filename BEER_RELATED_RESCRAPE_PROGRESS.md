@@ -27,3 +27,4 @@ Targets only this flagged subset per state, not every brewery.
 | GA    | 2026-08-13T20:24Z | 22       | 1              | 18          | 0      |
 | FL    | 2026-08-13T20:27Z | 67       | 3              | 30          | 0      |
 | AL    | 2026-08-13T20:28Z | 14       | 1              | 1           | 0      |
+| MS    | 2026-08-13T20:29Z | 7        | 0              | 0           | 0      |
