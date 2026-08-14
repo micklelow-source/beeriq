@@ -19,3 +19,5 @@ Targets only this flagged subset per state, not every brewery.
 | PA    | 2026-08-13T20:15Z | 88       | 5              | 64          | 0      |
 | DE    | 2026-08-13T20:16Z | 6        | 0              | 0           | 0      |
 | MD    | 2026-08-13T20:18Z | 65       | 2              | 41          | 0      |
+| DC    | 2026-08-13T19:00Z | 7        | 0              | 0           | 0      |
+| VA    | 2026-08-13T19:00Z | 78       | 2              | 15          | 0      |
