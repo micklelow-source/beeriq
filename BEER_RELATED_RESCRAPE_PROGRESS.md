@@ -55,3 +55,4 @@ Targets only this flagged subset per state, not every brewery.
 | AZ    | 2026-08-13T21:12Z | 31       | 0              | 0           | 0      |
 | NV    | 2026-08-13T21:13Z | 14       | 0              | 0           | 0      |
 | WA    | 2026-08-13T21:19Z | 197      | 13             | 164         | 0      |
+| OR    | 2026-08-13T21:21Z | 96       | 5              | 32          | 0      |
