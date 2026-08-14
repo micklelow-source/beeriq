@@ -30,3 +30,4 @@ Targets only this flagged subset per state, not every brewery.
 | MS    | 2026-08-13T20:29Z | 7        | 0              | 0           | 0      |
 | TN    | 2026-08-13T20:30Z | 36       | 1              | 5           | 0      |
 | KY    | 2026-08-13T20:32Z | 22       | 1              | 1           | 0      |
+| LA    | 2026-08-13T20:32Z | 11       | 0              | 0           | 0      |
