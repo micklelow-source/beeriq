@@ -42,3 +42,4 @@ commit bf77c71) beyond round 1's drinks/drink-list fix (commit cd77db0).
 | IA    | 2026-08-17T11:09Z | 34       | 2              | 2           | 0      |
 | MO    | 2026-08-17T11:12Z | 50       | 0              | 0           | 0      |
 | KS    | 2026-08-17T11:13Z | 11       | 1              | 13          | 0      |
+| NE    | 2026-08-17T11:15Z | 24       | 3              | 36          | 0      |
