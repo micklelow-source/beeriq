@@ -33,3 +33,4 @@ commit bf77c71) beyond round 1's drinks/drink-list fix (commit cd77db0).
 | AR    | 2026-08-17T10:39Z | 10       | 2              | 22          | 0      |
 | OK    | 2026-08-17T10:41Z | 16       | 0              | 0           | 0      |
 | TX    | 2026-08-17T10:46Z | 109      | 8              | 30          | 0      |
+| OH    | 2026-08-17T10:49Z | 83       | 2              | 45          | 0      |
