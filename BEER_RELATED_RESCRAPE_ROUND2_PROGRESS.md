@@ -57,3 +57,24 @@ commit bf77c71) beyond round 1's drinks/drink-list fix (commit cd77db0).
 | OR    | 2026-08-17T11:54Z | 96       | 4              | 39          | 0      |
 | CA    | 2026-08-17T12:04Z | 251      | 7              | 75          | 0      |
 | AK    | 2026-08-17T12:06Z | 26       | 2              | 5           | 0      |
+| HI    | 2026-08-17T12:08Z | 23       | 0              | 0           | 0      |
+
+## Summary
+
+All 51 states/DC completed -- the full 2,485-brewery `beer_related` set,
+re-run with the further-expanded vocabulary (commit bf77c71).
+
+- States completed: 51 / 51
+- Total targeted: 2,485
+- Now with taps: 122 (4.9%)
+- Beers found: 1,153
+- Errors: 0
+
+Compared to round 1 (BEER_RELATED_RESCRAPE_PROGRESS.md), which recovered 98
+of 2,485 breweries (903 beers), round 2's further-expanded vocabulary
+(brews/offerings/pours/selections/flights/beverages/what's-brewing) recovered
+an additional 24 breweries (122 vs. 98 total), with total beers found rising
+from 903 to 1,153. As expected, most states saw few or no additional
+recoveries beyond round 1 -- the remaining ~2,363 `beer_related` breweries
+are dominated by extraction failures (JS-rendered content, PDFs, unusual
+layouts) that a vocabulary change cannot fix, not discovery misses.
