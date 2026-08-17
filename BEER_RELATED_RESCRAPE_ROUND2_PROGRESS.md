@@ -56,3 +56,4 @@ commit bf77c71) beyond round 1's drinks/drink-list fix (commit cd77db0).
 | WA    | 2026-08-17T11:51Z | 197      | 13             | 133         | 0      |
 | OR    | 2026-08-17T11:54Z | 96       | 4              | 39          | 0      |
 | CA    | 2026-08-17T12:04Z | 251      | 7              | 75          | 0      |
+| AK    | 2026-08-17T12:06Z | 26       | 2              | 5           | 0      |
