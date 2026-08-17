@@ -26,3 +26,4 @@ commit bf77c71) beyond round 1's drinks/drink-list fix (commit cd77db0).
 | GA    | 2026-08-17T10:26Z | 22       | 1              | 6           | 0      |
 | FL    | 2026-08-17T10:30Z | 67       | 3              | 87          | 0      |
 | AL    | 2026-08-17T10:31Z | 14       | 1              | 1           | 0      |
+| MS    | 2026-08-17T10:32Z | 7        | 0              | 0           | 0      |
